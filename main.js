@@ -137,7 +137,6 @@ AFRAME.registerComponent('game-manager', {
         this.captureButton.addEventListener('touchend', this.cancelCapture);
         this.el.sceneEl.addEventListener('enter-vr', this.initGame);
         this.el.sceneEl.addEventListener('click', (event) => {
-            // Clicks na cena só são para posicionar objetos
             this.placeObject();
         });
     },

@@ -11,7 +11,7 @@ body {
     color: #fff;
 }
 
-/* O contêiner da UI que fica sobre a cena AR */
+/* Contêiner principal da UI que permite cliques passarem por ele */
 #ui-container {
     position: fixed;
     top: 0;
@@ -19,6 +19,7 @@ body {
     right: 0;
     bottom: 0;
     z-index: 10;
+    pointer-events: none;
 }
 
 .ui-element {
@@ -39,13 +40,11 @@ body {
     transition: opacity 0.5s ease-out;
     padding: 20px;
     box-sizing: border-box;
-    /* Garante que as telas de UI possam receber cliques */
-    pointer-events: auto;
+    pointer-events: auto; /* Telas cheias devem ser clicáveis */
 }
 
-.ui-screen.hidden {
-    opacity: 0;
-    pointer-events: none;
+.hidden {
+    display: none !important; /* Regra forte para garantir que o elemento seja escondido */
 }
 
 #logo {
@@ -119,8 +118,7 @@ body {
 
 /* UI Principal do Jogo */
 #game-ui {
-    /* Este container é transparente a cliques por padrão */
-    pointer-events: none;
+    pointer-events: none; /* O container em si não é clicável */
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
 }
@@ -140,7 +138,6 @@ body {
     right: 15px;
     z-index: 25;
     cursor: pointer;
-    pointer-events: auto; /* Clicável */
 }
 
 #inventory-icon {
@@ -185,7 +182,6 @@ body {
     z-index: 15;
     cursor: pointer;
     overflow: hidden;
-    pointer-events: auto; /* Clicável */
 }
 #capture-progress {
     width: 100%;
@@ -207,7 +203,6 @@ body {
     z-index: 20;
     box-shadow: 0 0 15px rgba(146, 244, 40, 0.5);
     overflow: hidden;
-    pointer-events: auto; /* Clicável */
 }
 
 #distance-info {
