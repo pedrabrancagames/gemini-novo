@@ -2,16 +2,13 @@
 
 [...]
 
-## 29/08/2025 - Correção Final do Bug de Evento de Clique (Tentativa 2)
+## 29/08/2025 - Correção Final do Bug de Evento de Clique (Tentativa 3)
 
 ### Problema
-O bug mais persistente do projeto: cliques na tela não eram registrados pela cena AR, impedindo o posicionamento de objetos. A refatoração anterior para um componente A-Frame e a separação dos arquivos HTML/CSS/JS não foram suficientes, pois a causa raiz, um problema de captura de eventos pela UI, ainda existia.
+Mesmo após a re-arquitetura da UI, o clique na cena AR ainda não funcionava. O feedback do usuário de que os botões da UI (como o inventário) passaram a funcionar, mas o clique na cena não, foi a pista final. Isso provou que o problema não era o bloqueio de eventos, mas sim o *tipo* de evento que estava sendo escutado.
 
 ### Solução
-A solução definitiva foi uma correção arquitetural na forma como a UI e a cena AR interagem, utilizando o sistema `dom-overlay` de forma mais precisa.
-1.  **Diagnóstico Final:** O feedback do usuário de que um "retângulo azul transparente" aparecia ao tocar na tela foi a pista decisiva. Isso indicava que um elemento HTML, e não a cena AR, estava recebendo o evento de toque.
-2.  **Correção Arquitetural (HTML/CSS):**
-    - Todo o HTML da interface foi movido para um contêiner pai, `#ui-container`.
-    - A cena A-Frame (`<a-scene>`) foi configurada para usar este contêiner como sua sobreposição oficial (`overlayElement: #ui-container`).
-    - O CSS foi ajustado para que o `#ui-container` seja, por padrão, "transparente" a cliques (`pointer-events: none;`), permitindo que os toques cheguem à cena AR. Apenas os botões e ícones clicáveis dentro da UI têm os eventos reativados com `pointer-events: auto;`.
-3.  **Depuração com Alertas:** Para garantir que a solução funcionaria, a função `placeObject` foi novamente preenchida com `alert()`s numerados para rastrear o fluxo de execução em tempo real durante o teste do usuário.
+O problema foi identificado como uma idiossincrasia do A-Frame ou do navegador mobile em como ele processa eventos de toque em uma sessão de WebXR.
+1.  **Diagnóstico:** O evento sintético `click` não estava sendo disparado de forma confiável na cena AR.
+2.  **Correção (JavaScript):** A solução foi substituir o listener de evento. Em vez de `addEventListener('click', ...)` na cena, foi utilizado `addEventListener('mousedown', ...)`. O evento `mousedown` é um evento de nível mais baixo que corresponde ao momento exato em que o dedo toca a tela, sendo mais robusto e confiável em ambientes 3D/AR do que o `click`, que depende de um ciclo de `touchstart` e `touchend`.
+3.  **Limpeza:** Os `alert`s de depuração foram removidos do código, pois a correção do evento tornou-os desnecessários.
