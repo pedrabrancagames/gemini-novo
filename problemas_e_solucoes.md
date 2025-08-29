@@ -2,15 +2,13 @@
 
 [...]
 
-## 29/08/2025 - Correção Final do Bug de Posicionamento AR
+## 29/08/2025 - Teste Definitivo: Substituindo o Modelo 3D por um Primitivo
 
 ### Problema
-Mesmo após a refatoração do código e a correção do erro fatal no loop de renderização, o fantasma ainda não aparecia na câmera AR. A retícula de posicionamento aparecia corretamente, indicando que o sistema de detecção de superfícies estava funcional, mas o ato de tocar na tela para posicionar o objeto não surtia efeito visual.
+Mesmo com a lógica de posicionamento e escala corrigida, o fantasma continuava invisível na câmera AR. Isso isolou o problema ao próprio arquivo de modelo 3D (`ghost.glb`), que poderia estar corrompido, com problemas de material ou com seu ponto de origem deslocado.
 
 ### Solução
-Uma análise detalhada da função `placeObject` revelou o erro final: a linha de código que definia a **escala** do modelo 3D havia sido perdida durante as refatorações. Sem uma escala definida, o objeto era criado com tamanho 0 ou um tamanho inválido, tornando-o invisível.
-
-1.  **Correção da Escala:** A linha `entityToPlace.setAttribute('scale', '0.3 0.3 0.3');` foi adicionada à função `placeObject`.
-2.  **Lógica de Debug Removida:** A alteração que forçava a retícula a aparecer a todo momento foi revertida, pois o bug principal foi encontrado. A retícula agora só aparece quando o jogador está de fato próximo a um fantasma (`objectToPlace` está definido).
-
-Com esta correção, o ciclo de gameplay está totalmente funcional e o principal bug do jogo foi resolvido.
+Para provar que toda a lógica de programação (proximidade, detecção de superfície, posicionamento, escala, visibilidade) estava correta, uma medida de depuração definitiva foi tomada:
+1.  **Substituição do Modelo:** A entidade `#ghost` no `index.html` foi alterada. A referência ao `gltf-model` foi removida e substituída por componentes de geometria e material padrão do A-Frame (`geometry="primitive: box; ..."` e `material="color: white;"`).
+2.  **Objetivo do Teste:** O objetivo é verificar se um objeto simples e garantidamente funcional (um cubo branco) aparece no lugar do fantasma. Se o cubo aparecer, confirma-se que o problema reside exclusivamente no arquivo `ghost.glb`, e não no código.
+3.  **Próximo Passo (Pós-teste):** Se o teste for bem-sucedido, a solução será recriar ou reexportar o arquivo `ghost.glb` para garantir que ele seja um asset válido e funcional.
