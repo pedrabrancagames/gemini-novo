@@ -2,13 +2,14 @@
 
 [...]
 
-## 29/08/2025 - Refatoração do Código e Correção de Bug Crítico
+## 29/08/2025 - Refatoração para Componente A-Frame e Correção de Bugs
 
 ### Problema
-O jogo estava travando na tela de seleção de local, impedindo o início da experiência de AR. A causa raiz foi identificada como um problema no tempo de carregamento do JavaScript, que tentava acessar elementos HTML antes de estarem prontos.
+O jogo continuava travando na tela de seleção de local, e a investigação apontou para um erro fatal no loop de renderização da AR (`onXRFrame`). Adicionalmente, alguns ícones da interface haviam desaparecido após uma refatoração anterior.
 
 ### Solução
-1.  **Refatoração do Código:** O código foi separado em três arquivos distintos: `index.html` (estrutura), `style.css` (estilos), e `main.js` (lógica), melhorando a organização e a performance.
-2.  **Correção do Carregamento do Script:** A chamada para o script `main.js` foi movida do `<head>` para o final do `<body>`. Isso garante que toda a página HTML seja carregada e analisada pelo navegador antes da execução de qualquer código JavaScript, resolvendo o problema de travamento.
-3.  **Remoção de Código de Depuração:** O `alert` que havia sido adicionado para testes foi removido.
-4.  **Consolidação:** Todas as funcionalidades desenvolvidas anteriormente (Inventário, QR Code, etc.) foram mantidas na nova estrutura de arquivos.
+1.  **Refatoração para Componente A-Frame:** A causa do erro fatal foi a maneira como o loop de renderização estava sendo gerenciado. A solução definitiva foi reescrever toda a lógica do jogo dentro de um **componente A-Frame customizado** (`game-manager`).
+    - Isso move o código para a arquitetura padrão e recomendada pelo A-Frame.
+    - O loop de renderização agora é gerenciado pelo método `tick(time, timeDelta)` do componente, que é mais estável e seguro, resolvendo o travamento.
+2.  **Correção da UI:** Os `<img>` da logo do jogo e da Proton Pack foram adicionados de volta ao `index.html` e devidamente estilizados no `style.css`, corrigindo a regressão visual.
+3.  **Consolidação Final:** Todas as funcionalidades (Login, Seleção de Local, GPS, Minimapa, Captura, Inventário, QR Code, Easter Egg do Ecto-1) foram migradas para dentro da nova estrutura de componente, resultando em um código mais limpo, organizado e, mais importante, funcional.
