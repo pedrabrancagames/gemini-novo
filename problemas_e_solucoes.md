@@ -2,13 +2,15 @@
 
 [...]
 
-## 29/08/2025 - Correção Final do Bug de Evento de Clique
+## 29/08/2025 - Correção Arquitetural da Interface (DOM Overlay)
 
 ### Problema
-Mesmo com a retícula de mira aparecendo, o clique na tela para posicionar o objeto não funcionava. Nenhum alerta de depuração era disparado, indicando que o evento de clique não estava chegando na cena A-Frame.
+O bug mais persistente do projeto: cliques na tela não eram registrados pela cena AR, impedindo o posicionamento de objetos. As tentativas de correção com `pointer-events` em CSS se mostraram insuficientes, indicando um problema mais fundamental na forma como a camada de UI e a camada AR estavam sobrepostas.
 
 ### Solução
-O problema foi identificado como um erro de "captura de evento" na interface do jogo.
-1.  **Diagnóstico:** O contêiner da UI do jogo (`#game-ui`) estava posicionado sobre toda a tela e, por padrão, bloqueava os cliques de passarem para a cena AR que estava por baixo.
-2.  **Correção (CSS/HTML):** A solução foi aplicar `pointer-events: none;` ao contêiner `#game-ui`, fazendo com que ele se tornasse "transparente" a eventos de mouse/toque. Ao mesmo tempo, os elementos *dentro* dele que precisam ser interativos (botões, ícones) receberam a classe `.ui-element`, que os torna clicáveis novamente com `pointer-events: auto;`. Isso garante que apenas os botões capturem o clique, e o resto da tela passe o evento para a cena AR.
-3.  **Limpeza:** Os `alert`s de depuração foram removidos do código final.
+Foi aplicada uma refatoração arquitetural, que é a maneira correta e recomendada pelo A-Frame para lidar com UIs sobrepostas.
+1.  **Separação da UI:** Todo o código HTML da interface (telas, modais, botões) foi movido para fora da `<a-scene>` e agrupado em um contêiner principal, `#ui-container`.
+2.  **Uso do `dom-overlay`:** A `<a-scene>` foi configurada para usar este novo contêiner como sua camada de sobreposição oficial através da propriedade `webxr="overlayElement: #ui-container"`.
+3.  **Gerenciamento de Estado:** A lógica de JavaScript para mostrar e esconder as diferentes partes da UI (como a tela de login e a tela de jogo) foi ajustada para funcionar com esta nova estrutura, garantindo que apenas a UI relevante esteja visível e que a cena AR receba os eventos de toque corretamente.
+
+Esta abordagem elimina a raiz do conflito de eventos, garantindo que toques na área de visualização da câmera sejam processados pela cena AR, enquanto toques nos botões sejam processados pela UI.

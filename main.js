@@ -137,8 +137,8 @@ AFRAME.registerComponent('game-manager', {
         this.captureButton.addEventListener('touchend', this.cancelCapture);
         this.el.sceneEl.addEventListener('enter-vr', this.initGame);
         this.el.sceneEl.addEventListener('click', (event) => {
-            if (event.target.classList.contains('ui-element')) return;
-            if (this.gameInitialized) this.placeObject();
+            // Clicks na cena só são para posicionar objetos
+            this.placeObject();
         });
     },
 
@@ -224,7 +224,7 @@ AFRAME.registerComponent('game-manager', {
     initGame: function () {
         this.gameInitialized = true;
         this.locationScreen.classList.add('hidden');
-        this.gameUi.style.display = 'block';
+        this.gameUi.classList.remove('hidden');
         this.initMap();
         this.setupHitTest();
     },
@@ -403,10 +403,7 @@ AFRAME.registerComponent('game-manager', {
     },
 
     placeObject: function () {
-        // alert("1. placeObject foi chamada.");
-        if (!this.objectToPlace || this.placedObjects[this.objectToPlace] || !this.reticle.getAttribute('visible')) {
-            return;
-        }
+        if (!this.objectToPlace || this.placedObjects[this.objectToPlace] || !this.reticle.getAttribute('visible')) return;
         
         let entityToPlace;
         if (this.objectToPlace === 'ghost') {

@@ -22,7 +22,7 @@
 <body>
     <!-- A-Frame Scene -->
     <a-scene id="ar-scene" game-manager
-        webxr="requiredFeatures: hit-test, local-floor; optionalFeatures: dom-overlay; overlayElement: #overlay;"
+        webxr="requiredFeatures: hit-test, local-floor; optionalFeatures: dom-overlay; overlayElement: #ui-container;"
         vr-mode-ui="enabled: false"
         renderer="logarithmicDepthBuffer: true; colorManagement: true; antialias: true; physicallyCorrectLights: true;"
         background="color: transparent;">
@@ -44,8 +44,8 @@
         <a-entity id="ecto-1" visible="false" geometry="primitive: box; width: 1.5; height: 0.8; depth: 3.5" material="color: #FFFFFF;"></a-entity>
     </a-scene>
 
-    <!-- UI Overlay -->
-    <div id="overlay">
+    <!-- UI Container -->
+    <div id="ui-container">
         <div id="login-screen" class="ui-screen ui-element">
             <img id="logo" src="assets/images/logo.png" alt="Ghostbusters Logo">
             <p id="loading-info">Autenticação necessária para caçar.</p>
@@ -62,7 +62,7 @@
             <button id="enter-button" class="action-button ui-element" disabled>Iniciar Caça</button>
         </div>
 
-        <div id="game-ui">
+        <div id="game-ui" class="hidden">
             <img id="game-logo" src="assets/images/logo.png" alt="Logo">
             <div id="inventory-icon-container" class="ui-element">
                 <img id="inventory-icon" src="assets/images/ghost_trap.png" alt="Inventário">
