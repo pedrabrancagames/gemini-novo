@@ -27,7 +27,7 @@
         renderer="logarithmicDepthBuffer: true; colorManagement: true; antialias: true; physicallyCorrectLights: true;"
         background="color: transparent;">
         <a-assets>
-            <!-- <a-asset-item id="ghost-model" src="assets/models/ghost.glb"></a-asset-item> -->
+            <a-asset-item id="ghost-model" src="assets/models/ghost.glb"></a-asset-item>
             <audio id="proton-beam-sound" src="assets/audio/proton-beam.mp3" preload="auto"></audio>
             <audio id="capture-success-sound" src="assets/audio/inventory_full.mp3" preload="auto"></audio>
         </a-assets>
@@ -38,8 +38,8 @@
             geometry="primitive: ring; radius-inner: 0.04; radius-outer: 0.06;"
             material="color: #92F428; shader: flat;"></a-entity>
         
-        <!-- Fantasma substituído por um cubo branco para teste -->
-        <a-entity id="ghost" geometry="primitive: box; width: 0.5; height: 1; depth: 0.5" material="color: white;" visible="false"></a-entity>
+        <!-- Fantasma agora usa o modelo GLB real -->
+        <a-entity id="ghost" gltf-model="#ghost-model" visible="false"></a-entity>
         
         <a-entity id="ecto-1" visible="false" geometry="primitive: box; width: 1.5; height: 0.8; depth: 3.5" material="color: #FFFFFF;"></a-entity>
     </a-scene>

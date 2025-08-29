@@ -136,6 +136,7 @@ AFRAME.registerComponent('game-manager', {
         this.captureButton.addEventListener('touchstart', this.startCapture);
         this.captureButton.addEventListener('touchend', this.cancelCapture);
         this.el.sceneEl.addEventListener('enter-vr', this.initGame);
+        // this.el.sceneEl.addEventListener('mousedown', this.placeObject); // Removido para posicionamento automático
     },
 
     saveUserToDatabase: function (user) {
