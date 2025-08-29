@@ -136,7 +136,6 @@ AFRAME.registerComponent('game-manager', {
         this.captureButton.addEventListener('touchstart', this.startCapture);
         this.captureButton.addEventListener('touchend', this.cancelCapture);
         this.el.sceneEl.addEventListener('enter-vr', this.initGame);
-        this.el.sceneEl.addEventListener('mousedown', this.placeObject);
     },
 
     saveUserToDatabase: function (user) {
@@ -389,11 +388,12 @@ AFRAME.registerComponent('game-manager', {
         if (hitTestResults.length > 0) {
             const hit = hitTestResults[0];
             const pose = hit.getPose(this.el.sceneEl.renderer.xr.getReferenceSpace());
-            if (this.objectToPlace && !this.placedObjects[this.objectToPlace]) {
-                this.reticle.setAttribute('visible', true);
-                this.reticle.object3D.matrix.fromArray(pose.transform.matrix);
-                this.reticle.object3D.matrix.decompose(this.reticle.object3D.position, this.reticle.object3D.quaternion, this.reticle.object3D.scale);
-            }
+            this.reticle.setAttribute('visible', true);
+            this.reticle.object3D.matrix.fromArray(pose.transform.matrix);
+            this.reticle.object3D.matrix.decompose(this.reticle.object3D.position, this.reticle.object3D.quaternion, this.reticle.object3D.scale);
+            
+            // Tenta posicionar o objeto automaticamente assim que uma superfície for encontrada
+            this.placeObject();
         } else {
             this.reticle.setAttribute('visible', false);
         }
