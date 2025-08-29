@@ -1,32 +1,22 @@
 # Diário de Desenvolvimento: Ghostbusters AR
 
-Este documento registra os desafios encontrados e as soluções aplicadas durante o desenvolvimento do jogo de Realidade Aumentada Ghostbusters.
-
-## 29/08/2025 - Estrutura Inicial do Projeto (MVP)
-
 [...]
 
-## 29/08/2025 - Ajustes de UI, Testabilidade e Diagnóstico de Bugs
-
-[...]
-
-## 29/08/2025 - Correção de Bug e Implementação de Inventário
+## 29/08/2025 - Unidade de Contenção com QR Code
 
 ### Problema
-O bug crítico que impedia o aparecimento do fantasma na câmera AR foi diagnosticado como uma falha no carregamento do modelo 3D. Além disso, o ciclo de jogo estava incompleto sem um sistema de inventário para armazenar os fantasmas capturados.
+Para completar o ciclo de gameplay, os jogadores precisam de uma maneira de esvaziar seus inventários cheios. Conforme os requisitos, isso deve ser feito escaneando um QR Code em um local físico, simulando uma "Unidade de Contenção".
 
 ### Solução
-1.  **Correção do Modelo 3D:** Com a confirmação de que o arquivo `ghost.glb` estava acessível online, a entidade do fantasma no A-Frame foi revertida para usar o `gltf-model` em vez da forma geométrica provisória. Isso resolve o problema visual principal.
-2.  **Lógica de Inventário:**
-    - Uma variável `inventory = []` foi criada para armazenar os fantasmas capturados.
-    - Uma constante `INVENTORY_LIMIT = 5` foi definida.
-    - A função `ghostCaptured` agora adiciona um objeto de fantasma ao array `inventory` e salva o inventário atualizado no Firebase.
-3.  **UI do Inventário:**
-    - Um `div` para o contador (`#inventory-badge`) foi adicionado sobre o ícone da Ghost Trap.
-    - Uma janela modal (`#inventory-modal`) foi criada em HTML e estilizada com CSS. Ela contém uma lista (`<ul>`) para os fantasmas.
-    - Uma função `updateInventoryUI` foi criada para atualizar o texto do contador e gerar dinamicamente os itens da lista com base no array `inventory`.
-4.  **Controle de Fluxo:**
-    - A função `updateInventoryUI` é chamada após a captura de um fantasma e no login do usuário (para carregar o estado salvo do Firebase).
-    - Se o inventário atinge o limite, a função `generateGhost` é impedida de criar um novo fantasma e um alerta informa o jogador que o inventário está cheio.
-    - A captura também é desabilitada se o inventário estiver cheio.
-4.  **Interatividade:** Listeners de clique foram adicionados para abrir e fechar a janela do inventário.
+1.  **Biblioteca de QR Code:** A biblioteca `html5-qrcode` foi adicionada ao projeto via CDN para fornecer a funcionalidade de scanner.
+2.  **UI do Scanner:**
+    - Uma nova tela (`#qr-scanner-screen`) foi criada para abrigar o leitor de vídeo da câmera.
+    - Um botão "Depositar Fantasmas" foi adicionado ao modal do inventário, que fica visível apenas quando há fantasmas para depositar.
+3.  **Lógica do Scanner:**
+    - Ao clicar em "Depositar", a função `startQrScanner` é chamada. Ela esconde as outras UIs e inicia a câmera para procurar por um QR Code.
+    - Uma função de callback `onScanSuccess` é executada quando um código é lido com sucesso.
+4.  **Validação e Depósito:**
+    - O texto do QR Code lido é validado contra um valor pré-definido (`GHOSTBUSTERS_CONTAINMENT_UNIT_01`).
+    - Se a validação for bem-sucedida, a função `depositGhosts` é chamada.
+    - `depositGhosts` limpa o array de inventário local, atualiza o Firebase para refletir o inventário vazio, e chama `generateGhost` para que a caça possa recomeçar.
+5.  **Fluxo do Usuário:** O ciclo agora está completo: Caçar -> Capturar -> Encher o inventário -> Ir para a unidade de contenção -> Escanear QR Code -> Esvaziar inventário -> Repetir.
