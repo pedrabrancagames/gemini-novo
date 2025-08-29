@@ -61,37 +61,35 @@
             pointer-events: none;
         }
 
-        /* Tela de Carregamento */
+        /* Tela de Login/Carregamento */
         #logo {
             width: 80%;
             max-width: 350px;
             margin-bottom: 40px;
         }
 
-        #progress-bar-container {
-            width: 70%;
-            max-width: 300px;
-            height: 15px;
-            border: 2px solid #92F428;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            background-color: rgba(146, 244, 40, 0.1);
-        }
-
-        #progress-bar {
-            width: 0%;
-            height: 100%;
-            background-color: #92F428;
-            transition: width 0.3s ease-in-out;
-        }
-
         #loading-info {
             font-size: 1em;
             color: #ccc;
-            margin-top: 10px;
+            margin-top: 20px;
+            height: 20px;
         }
 
+        .auth-button {
+            display: none;
+            /* Começa escondido */
+            margin-top: 30px;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            background-color: #4285F4;
+            color: #fff;
+        }
+        
         #enter-button {
             display: none;
             /* Começa escondido */
@@ -211,13 +209,11 @@
 
     <!-- Interface do Usuário (UI) -->
     <div id="overlay">
-        <!-- Tela de Carregamento -->
-        <div id="loading-screen" class="ui-screen ui-element">
+        <!-- Tela de Login -->
+        <div id="login-screen" class="ui-screen ui-element">
             <img id="logo" src="assets/images/logo.png" alt="Ghostbusters Logo">
-            <div id="progress-bar-container">
-                <div id="progress-bar"></div>
-            </div>
-            <p id="loading-info">Carregando equipamentos...</p>
+            <p id="loading-info">Autenticação necessária para caçar.</p>
+            <button id="google-login-button" class="auth-button ui-element">Login com Google</button>
             <button id="enter-button" class="ui-element">Iniciar Caça</button>
         </div>
 
@@ -231,106 +227,128 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Importar funções do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
         document.addEventListener('DOMContentLoaded', () => {
-            // Elementos da UI
+            // --- Configuração do Firebase ---
+            const firebaseConfig = {
+                apiKey: "AIzaSyC8DE4F6mU9oyRw8cLU5vcfxOp5RxLcgHA",
+                authDomain: "ghostbusters-ar-game.firebaseapp.com",
+                databaseURL: "https://ghostbusters-ar-game-default-rtdb.firebaseio.com",
+                projectId: "ghostbusters-ar-game",
+                storageBucket: "ghostbusters-ar-game.appspot.com",
+                messagingSenderId: "4705887791",
+                appId: "1:4705887791:web:a1a4e360fb9f8415be08da"
+            };
+
+            // Inicializar Firebase
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const provider = new GoogleAuthProvider();
+
+            // --- Elementos da UI ---
             const sceneEl = document.getElementById('ar-scene');
-            const loadingScreen = document.getElementById('loading-screen');
+            const loginScreen = document.getElementById('login-screen');
             const enterButton = document.getElementById('enter-button');
+            const googleLoginButton = document.getElementById('google-login-button');
             const loadingInfo = document.getElementById('loading-info');
-            const progressBar = document.getElementById('progress-bar');
             const gameUi = document.getElementById('game-ui');
 
-            // Elementos da Cena AR
+            // --- Elementos da Cena AR ---
             const reticle = document.getElementById('reticle');
             const ghostEntity = document.getElementById('ghost');
 
-            // Estado do Jogo
+            // --- Estado do Jogo ---
             let gameInitialized = false;
             let hitTestSource = null;
             let ghostPlaced = false;
+            let currentUser = null;
 
-            // 1. Simular o carregamento de assets
-            function simulateLoading() {
-                let progress = 0;
-                loadingInfo.innerText = 'Verificando equipamentos...';
-                const interval = setInterval(() => {
-                    progress += 25;
-                    progressBar.style.width = progress + '%';
-                    if (progress >= 100) {
-                        clearInterval(interval);
-                        loadingInfo.innerText = "Tudo pronto! Vamos caçar!";
-                        enterButton.style.display = 'block';
-                    }
-                }, 400);
+            // 1. Lógica de Autenticação
+            function handleGoogleLogin() {
+                signInWithPopup(auth, provider)
+                    .then((result) => {
+                        console.log("Usuário logado com sucesso:", result.user.displayName);
+                    }).catch((error) => {
+                        console.error("Erro na autenticação:", error);
+                        loadingInfo.innerText = `Erro de login: ${error.message}`;
+                    });
             }
 
-            // 2. Lidar com a entrada no modo AR
+            // 2. Observador de Estado de Autenticação
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // Usuário está logado
+                    currentUser = user;
+                    loadingInfo.innerText = `Bem-vindo, ${user.displayName}!`;
+                    googleLoginButton.style.display = 'none';
+                    enterButton.style.display = 'block';
+                } else {
+                    // Usuário está deslogado
+                    currentUser = null;
+                    loadingInfo.innerText = "Autenticação necessária para caçar.";
+                    googleLoginButton.style.display = 'block';
+                    enterButton.style.display = 'none';
+                }
+            });
+
+            // 3. Lidar com a entrada no modo AR
             async function startARSession() {
                 if (enterButton.disabled) return;
                 enterButton.disabled = true;
                 loadingInfo.innerText = "Iniciando câmera de prótons...";
 
                 try {
-                    // Verificar suporte a WebXR e AR
-                    if (!navigator.xr) throw new Error('WebXR não é suportado neste navegador.');
+                    if (!navigator.xr) throw new Error('WebXR não é suportado.');
                     const isARSupported = await navigator.xr.isSessionSupported('immersive-ar');
                     if (!isARSupported) throw new Error('AR não é suportado neste dispositivo.');
-                    
-                    // Iniciar a sessão AR
                     await sceneEl.enterAR();
-
                 } catch (error) {
                     loadingInfo.innerText = `Erro: ${error.message}`;
                     enterButton.disabled = false;
                 }
             }
 
-            // 3. Inicializar o jogo quando a sessão AR começar
+            // 4. Inicializar o jogo quando a sessão AR começar
             function initGame() {
                 gameInitialized = true;
-                loadingScreen.classList.add('hidden');
+                loginScreen.classList.add('hidden');
                 gameUi.style.display = 'block';
 
                 const renderer = sceneEl.renderer;
                 const xrSession = renderer.xr.getSession();
-
                 if (xrSession) {
                     setupHitTest(xrSession, renderer);
                 } else {
-                    console.error("Sessão XR não encontrada na inicialização.");
+                    console.error("Sessão XR não encontrada.");
                 }
             }
 
-            // 4. Configurar o Hit-Test para detectar superfícies
+            // 5. Configurar o Hit-Test
             async function setupHitTest(session, renderer) {
                 try {
                     const referenceSpace = await session.requestReferenceSpace('viewer');
                     hitTestSource = await session.requestHitTestSource({ space: referenceSpace });
-                    // Iniciar o loop de renderização
                     renderer.setAnimationLoop(onXRFrame);
                 } catch (error) {
                     console.error('Falha ao configurar o hit-test:', error);
                 }
             }
 
-            // 5. Loop de renderização executado a cada frame
+            // 6. Loop de Renderização
             function onXRFrame(timestamp, frame) {
-                if (!frame || !hitTestSource) return;
-
-                // Se o fantasma já foi colocado, não precisamos mais da retícula
-                if (ghostPlaced) {
+                if (!frame || !hitTestSource || ghostPlaced) {
                     reticle.setAttribute('visible', 'false');
                     return;
                 }
-
                 const hitTestResults = frame.getHitTestResults(hitTestSource);
-
                 if (hitTestResults.length > 0) {
                     const hit = hitTestResults[0];
                     const pose = hit.getPose(sceneEl.renderer.xr.getReferenceSpace());
                     if (pose) {
-                        // Mostrar e posicionar a retícula
                         reticle.setAttribute('visible', true);
                         reticle.object3D.matrix.fromArray(pose.transform.matrix);
                         reticle.object3D.matrix.decompose(reticle.object3D.position, reticle.object3D.quaternion, reticle.object3D.scale);
@@ -340,38 +358,25 @@
                 }
             }
 
-            // 6. Colocar o fantasma na cena
+            // 7. Colocar o Fantasma
             function placeGhost() {
                 if (ghostPlaced || !reticle.getAttribute('visible')) return;
-
                 ghostEntity.setAttribute('position', reticle.object3D.position);
                 ghostEntity.setAttribute('visible', 'true');
-                
-                // Ajustar a escala do fantasma
                 const scale = 0.3;
                 ghostEntity.object3D.scale.set(scale, scale, scale);
-                
                 ghostPlaced = true;
-                reticle.setAttribute('visible', 'false'); // Esconder a retícula
-                console.log('Fantasma colocado na posição:', reticle.object3D.position);
+                reticle.setAttribute('visible', 'false');
             }
 
             // --- Event Listeners ---
+            googleLoginButton.addEventListener('click', handleGoogleLogin);
             enterButton.addEventListener('click', startARSession);
-            sceneEl.addEventListener('enter-vr', initGame); // 'enter-vr' é o evento que A-Frame dispara para AR também
-            
-            // Colocar o fantasma com um clique na tela
+            sceneEl.addEventListener('enter-vr', initGame);
             sceneEl.addEventListener('click', (event) => {
-                // Ignorar cliques nos botões da UI
                 if (event.target.classList.contains('ui-element')) return;
-                
-                if (gameInitialized) {
-                    placeGhost();
-                }
+                if (gameInitialized) placeGhost();
             });
-
-            // Iniciar o processo
-            simulateLoading();
         });
     </script>
 </body>

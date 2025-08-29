@@ -23,3 +23,20 @@ Iniciar o projeto com uma base de código limpa, seguindo os requisitos, sem dep
         f. Um clique na cena chama `placeGhost`, que posiciona o modelo 3D do fantasma na localização da retícula e o torna visível.
 
 Este setup inicial cria uma base sólida e funcional para as próximas fases, como a integração com GPS e Firebase.
+
+## 29/08/2025 - Integração com Firebase Authentication
+
+### Problema
+O jogo precisa de um sistema de autenticação para identificar os jogadores, salvar seu progresso e exibir rankings. A tela inicial deve ser um portal de login, e não uma entrada direta no jogo.
+
+### Solução
+1.  **SDK do Firebase:** Os scripts do Firebase (App e Auth) foram adicionados ao `index.html` usando a importação de módulos ES6 (`type="module"`).
+2.  **Configuração:** O objeto `firebaseConfig` fornecido foi adicionado ao script para inicializar a conexão com o Firebase.
+3.  **UI de Login:**
+    - O `index.html` foi modificado para transformar a tela de carregamento em uma tela de login.
+    - Um botão "Login com Google" foi adicionado.
+    - O botão "Iniciar Caça" agora fica oculto até que o login seja efetuado com sucesso.
+4.  **Lógica de Autenticação:**
+    - Uma função `handleGoogleLogin` foi criada para gerenciar o fluxo de login com `signInWithPopup`.
+    - Um observador `onAuthStateChanged` foi implementado para monitorar o estado de login do usuário. Ele atualiza a UI dinamicamente, mostrando o botão de login ou o de iniciar o jogo, e exibindo uma mensagem de boas-vindas para o usuário logado.
+5.  **Fluxo do Usuário:** O fluxo agora é: Usuário abre a página -> Vê o botão de login -> Clica para logar com a conta Google -> Após o sucesso, o botão de "Iniciar Caça" aparece -> O usuário clica para entrar na experiência AR.
