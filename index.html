@@ -9,6 +9,10 @@
 
     <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    
+    <!-- Leaflet.js (para o minimapa) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
         /* Estilos Gerais */
@@ -24,7 +28,6 @@
             color: #fff;
         }
 
-        /* Overlay principal que cobre toda a tela */
         #overlay {
             position: fixed;
             top: 0;
@@ -33,15 +36,12 @@
             bottom: 0;
             z-index: 10;
             pointer-events: none;
-            /* Permite cliques através do overlay */
         }
 
-        /* Classe para elementos de UI que devem receber eventos de clique */
         .ui-element {
             pointer-events: auto;
         }
 
-        /* Telas de UI (Carregamento, Login, etc.) */
         .ui-screen {
             position: absolute;
             top: 0;
@@ -54,6 +54,8 @@
             justify-content: center;
             align-items: center;
             transition: opacity 0.5s ease-out;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .ui-screen.hidden {
@@ -61,24 +63,23 @@
             pointer-events: none;
         }
 
-        /* Tela de Login/Carregamento */
         #logo {
             width: 80%;
             max-width: 350px;
             margin-bottom: 40px;
         }
 
-        #loading-info {
+        #loading-info, #location-info-text, #distance-info {
             font-size: 1em;
             color: #ccc;
+            text-align: center;
             margin-top: 20px;
             height: 20px;
         }
 
-        .auth-button {
-            display: none;
-            /* Começa escondido */
-            margin-top: 30px;
+        .action-button {
+            display: none; 
+            margin-top: 20px;
             padding: 12px 25px;
             font-size: 1.1em;
             font-weight: bold;
@@ -86,29 +87,54 @@
             border-radius: 5px;
             cursor: pointer;
             text-transform: uppercase;
+        }
+
+        #google-login-button {
             background-color: #4285F4;
             color: #fff;
         }
         
         #enter-button {
-            display: none;
-            /* Começa escondido */
-            margin-top: 30px;
-            padding: 12px 25px;
-            font-size: 1.1em;
-            font-weight: bold;
             color: #000;
             background-color: #92F428;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-transform: uppercase;
         }
 
-        /* UI Principal do Jogo (conforme requisitos) */
+        #enter-button:disabled {
+            background-color: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        /* Tela de Seleção de Local */
+        #location-buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .location-button {
+            padding: 15px;
+            background-color: #333;
+            border: 2px solid #555;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .location-button.selected {
+            border-color: #92F428;
+            background-color: rgba(146, 244, 40, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* UI Principal do Jogo */
         #game-ui {
             display: none;
-            /* Começa escondida */
         }
 
         #top-left-logo {
@@ -149,27 +175,33 @@
             border-radius: 50%;
             z-index: 15;
             cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        #capture-button:active {
-            background-color: rgba(146, 244, 40, 0.6);
         }
 
         #minimap {
             position: fixed;
             bottom: 20px;
             left: 20px;
-            width: 120px;
-            height: 120px;
+            width: 150px; /* Aumentado */
+            height: 150px; /* Aumentado */
             background-color: rgba(0, 0, 0, 0.6);
             border: 2px solid #92F428;
-            border-radius: 50%;
-            z-index: 15;
-            cursor: pointer;
+            border-radius: 15px; /* Quadrado com cantos arredondados */
+            z-index: 20;
+            box-shadow: 0 0 15px rgba(146, 244, 40, 0.5);
         }
 
-        /* Esconder botões padrão do A-Frame */
+        #distance-info {
+            position: fixed;
+            bottom: 180px; /* Acima do minimapa */
+            left: 20px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #92F428;
+            font-weight: bold;
+            z-index: 20;
+        }
+
         .a-enter-vr-button,
         .a-enter-ar-button {
             display: none !important;
@@ -178,62 +210,58 @@
 </head>
 
 <body>
-    <!-- Cena A-Frame para Realidade Aumentada -->
     <a-scene id="ar-scene"
         webxr="requiredFeatures: hit-test, local-floor; optionalFeatures: dom-overlay; overlayElement: #overlay;"
         vr-mode-ui="enabled: false"
         renderer="logarithmicDepthBuffer: true; colorManagement: true; antialias: true; physicallyCorrectLights: true;"
         background="color: transparent;">
-
-        <!-- Assets a serem pré-carregados -->
         <a-assets>
             <a-asset-item id="ghost-model" src="assets/models/ghost.glb"></a-asset-item>
         </a-assets>
-
-        <!-- Iluminação da cena -->
         <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
         <a-light type="directional" color="#FFF" intensity="0.8" position="-1 2 1"></a-light>
-
-        <!-- Câmera do jogador -->
         <a-camera fov="80"></a-camera>
-
-        <!-- Retícula para indicar a superfície detectada -->
         <a-entity id="reticle" visible="false"
             geometry="primitive: ring; radius-inner: 0.04; radius-outer: 0.06;"
             material="color: #92F428; shader: flat;"></a-entity>
-
-        <!-- Entidade para o fantasma -->
         <a-entity id="ghost" gltf-model="#ghost-model" visible="false"></a-entity>
-
     </a-scene>
 
-    <!-- Interface do Usuário (UI) -->
     <div id="overlay">
-        <!-- Tela de Login -->
         <div id="login-screen" class="ui-screen ui-element">
             <img id="logo" src="assets/images/logo.png" alt="Ghostbusters Logo">
             <p id="loading-info">Autenticação necessária para caçar.</p>
-            <button id="google-login-button" class="auth-button ui-element">Login com Google</button>
-            <button id="enter-button" class="ui-element">Iniciar Caça</button>
+            <button id="google-login-button" class="action-button ui-element">Login com Google</button>
         </div>
 
-        <!-- UI Principal do Jogo -->
+        <div id="location-screen" class="ui-screen ui-element hidden">
+            <h2>Selecione a Área de Caça</h2>
+            <p id="location-info-text">Escolha um local para começar a patrulha.</p>
+            <div id="location-buttons-container">
+                <button class="location-button ui-element" data-location-name="Praça Central">Praça Central</button>
+                <button class="location-button ui-element" data-location-name="Parque da Cidade">Parque da Cidade</button>
+            </div>
+            <button id="enter-button" class="action-button ui-element" disabled>Iniciar Caça</button>
+        </div>
+
         <div id="game-ui" class="ui-element">
             <img id="top-left-logo" src="assets/images/logo.png" alt="Logo">
             <img id="inventory-icon" src="assets/images/ghost_trap.png" alt="Inventário">
             <img id="proton-pack-icon" src="assets/images/proton_pack.png" alt="Proton Pack">
             <div id="capture-button"></div>
             <div id="minimap"></div>
+            <div id="distance-info"></div>
         </div>
     </div>
 
     <script type="module">
-        // Importar funções do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Configuração do Firebase ---
+            const CAPTURE_RADIUS = 15; // metros
+
             const firebaseConfig = {
                 apiKey: "AIzaSyC8DE4F6mU9oyRw8cLU5vcfxOp5RxLcgHA",
                 authDomain: "ghostbusters-ar-game.firebaseapp.com",
@@ -244,90 +272,175 @@
                 appId: "1:4705887791:web:a1a4e360fb9f8415be08da"
             };
 
-            // Inicializar Firebase
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
+            const database = getDatabase(app);
             const provider = new GoogleAuthProvider();
 
-            // --- Elementos da UI ---
+            const locations = {
+                "Praça Central": { lat: -27.630913, lon: -48.679793 },
+                "Parque da Cidade": { lat: -27.639797, lon: -48.667749 }
+            };
+
             const sceneEl = document.getElementById('ar-scene');
             const loginScreen = document.getElementById('login-screen');
+            const locationScreen = document.getElementById('location-screen');
             const enterButton = document.getElementById('enter-button');
             const googleLoginButton = document.getElementById('google-login-button');
-            const loadingInfo = document.getElementById('loading-info');
             const gameUi = document.getElementById('game-ui');
+            const locationButtons = document.querySelectorAll('.location-button');
+            const minimapElement = document.getElementById('minimap');
+            const distanceInfo = document.getElementById('distance-info');
 
-            // --- Elementos da Cena AR ---
             const reticle = document.getElementById('reticle');
             const ghostEntity = document.getElementById('ghost');
 
-            // --- Estado do Jogo ---
             let gameInitialized = false;
             let hitTestSource = null;
             let ghostPlaced = false;
             let currentUser = null;
+            let selectedLocation = null;
+            let canPlaceGhost = false;
 
-            // 1. Lógica de Autenticação
-            function handleGoogleLogin() {
-                signInWithPopup(auth, provider)
-                    .then((result) => {
-                        console.log("Usuário logado com sucesso:", result.user.displayName);
-                    }).catch((error) => {
-                        console.error("Erro na autenticação:", error);
-                        loadingInfo.innerText = `Erro de login: ${error.message}`;
-                    });
+            let map, playerMarker, ghostMarker;
+            let ghostPosition = {};
+
+            function saveUserToDatabase(user) {
+                const userRef = ref(database, 'users/' + user.uid);
+                get(userRef).then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        set(userRef, {
+                            displayName: user.displayName,
+                            email: user.email,
+                            points: 0,
+                            captures: 0,
+                            level: 1
+                        });
+                    }
+                });
             }
 
-            // 2. Observador de Estado de Autenticação
+            function handleGoogleLogin() {
+                signInWithPopup(auth, provider).catch((error) => console.error("Erro na autenticação:", error));
+            }
+
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    // Usuário está logado
                     currentUser = user;
-                    loadingInfo.innerText = `Bem-vindo, ${user.displayName}!`;
-                    googleLoginButton.style.display = 'none';
-                    enterButton.style.display = 'block';
+                    saveUserToDatabase(user);
+                    loginScreen.classList.add('hidden');
+                    locationScreen.classList.remove('hidden');
                 } else {
-                    // Usuário está deslogado
                     currentUser = null;
-                    loadingInfo.innerText = "Autenticação necessária para caçar.";
+                    loginScreen.classList.remove('hidden');
+                    locationScreen.classList.add('hidden');
+                    gameUi.classList.add('hidden');
                     googleLoginButton.style.display = 'block';
-                    enterButton.style.display = 'none';
                 }
             });
 
-            // 3. Lidar com a entrada no modo AR
-            async function startARSession() {
-                if (enterButton.disabled) return;
-                enterButton.disabled = true;
-                loadingInfo.innerText = "Iniciando câmera de prótons...";
+            locationButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    locationButtons.forEach(btn => btn.classList.remove('selected'));
+                    button.classList.add('selected');
+                    selectedLocation = locations[button.dataset.locationName];
+                    enterButton.disabled = false;
+                    enterButton.style.display = 'block';
+                });
+            });
 
+            async function startARSession() {
+                if (!selectedLocation) {
+                    alert("Por favor, selecione uma área de caça primeiro!");
+                    return;
+                }
+                enterButton.disabled = true;
                 try {
-                    if (!navigator.xr) throw new Error('WebXR não é suportado.');
-                    const isARSupported = await navigator.xr.isSessionSupported('immersive-ar');
-                    if (!isARSupported) throw new Error('AR não é suportado neste dispositivo.');
                     await sceneEl.enterAR();
                 } catch (error) {
-                    loadingInfo.innerText = `Erro: ${error.message}`;
+                    alert(`Erro ao iniciar AR: ${error.message}`);
                     enterButton.disabled = false;
                 }
             }
 
-            // 4. Inicializar o jogo quando a sessão AR começar
             function initGame() {
                 gameInitialized = true;
-                loginScreen.classList.add('hidden');
+                locationScreen.classList.add('hidden');
                 gameUi.style.display = 'block';
-
+                initMap();
                 const renderer = sceneEl.renderer;
                 const xrSession = renderer.xr.getSession();
-                if (xrSession) {
-                    setupHitTest(xrSession, renderer);
+                if (xrSession) setupHitTest(xrSession, renderer);
+            }
+
+            function initMap() {
+                map = L.map(minimapElement).setView([selectedLocation.lat, selectedLocation.lon], 18);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+                generateGhost();
+                startGps();
+            }
+
+            function generateGhost() {
+                const radius = 0.001; // Aproximadamente 111 metros
+                ghostPosition.lat = selectedLocation.lat + (Math.random() - 0.5) * radius * 2;
+                ghostPosition.lon = selectedLocation.lon + (Math.random() - 0.5) * radius * 2;
+                
+                const ghostIcon = L.icon({ iconUrl: 'assets/images/logo.png', iconSize: [30, 30] });
+                ghostMarker = L.marker([ghostPosition.lat, ghostPosition.lon], { icon: ghostIcon }).addTo(map);
+            }
+
+            function startGps() {
+                if (!navigator.geolocation) {
+                    alert("Geolocalização não é suportada pelo seu navegador.");
+                    return;
+                }
+                navigator.geolocation.watchPosition(onGpsUpdate, 
+                    () => { alert("Não foi possível obter sua localização."); },
+                    { enableHighAccuracy: true }
+                );
+            }
+
+            function onGpsUpdate(position) {
+                const userLat = position.coords.latitude;
+                const userLon = position.coords.longitude;
+
+                if (!playerMarker) {
+                    const playerIcon = L.divIcon({ className: 'player-marker', html: '<div style="background-color: #92F428; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white;"></div>', iconSize: [15, 15] });
+                    playerMarker = L.marker([userLat, userLon], { icon: playerIcon }).addTo(map);
                 } else {
-                    console.error("Sessão XR não encontrada.");
+                    playerMarker.setLatLng([userLat, userLon]);
+                }
+                map.setView([userLat, userLon], 18);
+                checkProximity(userLat, userLon);
+            }
+
+            function checkProximity(userLat, userLon) {
+                const R = 6371e3; // Raio da Terra em metros
+                const phi1 = userLat * Math.PI/180;
+                const phi2 = ghostPosition.lat * Math.PI/180;
+                const deltaPhi = (ghostPosition.lat-userLat) * Math.PI/180;
+                const deltaLambda = (ghostPosition.lon-userLon) * Math.PI/180;
+
+                const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+                          Math.cos(phi1) * Math.cos(phi2) *
+                          Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                const distance = R * c; // em metros
+
+                distanceInfo.innerText = `Fantasma: ${distance.toFixed(0)}m`;
+
+                if (distance <= CAPTURE_RADIUS) {
+                    canPlaceGhost = true;
+                    distanceInfo.innerText = "FANTASMA PRÓXIMO! OLHE AO REDOR!";
+                    distanceInfo.style.color = "#ff0000";
+                } else {
+                    canPlaceGhost = false;
+                    distanceInfo.style.color = "#92F428";
                 }
             }
 
-            // 5. Configurar o Hit-Test
             async function setupHitTest(session, renderer) {
                 try {
                     const referenceSpace = await session.requestReferenceSpace('viewer');
@@ -338,9 +451,8 @@
                 }
             }
 
-            // 6. Loop de Renderização
             function onXRFrame(timestamp, frame) {
-                if (!frame || !hitTestSource || ghostPlaced) {
+                if (!frame || !hitTestSource || ghostPlaced || !canPlaceGhost) {
                     reticle.setAttribute('visible', 'false');
                     return;
                 }
@@ -358,7 +470,6 @@
                 }
             }
 
-            // 7. Colocar o Fantasma
             function placeGhost() {
                 if (ghostPlaced || !reticle.getAttribute('visible')) return;
                 ghostEntity.setAttribute('position', reticle.object3D.position);
@@ -369,7 +480,6 @@
                 reticle.setAttribute('visible', 'false');
             }
 
-            // --- Event Listeners ---
             googleLoginButton.addEventListener('click', handleGoogleLogin);
             enterButton.addEventListener('click', startARSession);
             sceneEl.addEventListener('enter-vr', initGame);
@@ -377,6 +487,8 @@
                 if (event.target.classList.contains('ui-element')) return;
                 if (gameInitialized) placeGhost();
             });
+
+            googleLoginButton.style.display = 'block';
         });
     </script>
 </body>

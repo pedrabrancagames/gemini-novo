@@ -40,3 +40,40 @@ O jogo precisa de um sistema de autenticação para identificar os jogadores, sa
     - Uma função `handleGoogleLogin` foi criada para gerenciar o fluxo de login com `signInWithPopup`.
     - Um observador `onAuthStateChanged` foi implementado para monitorar o estado de login do usuário. Ele atualiza a UI dinamicamente, mostrando o botão de login ou o de iniciar o jogo, e exibindo uma mensagem de boas-vindas para o usuário logado.
 5.  **Fluxo do Usuário:** O fluxo agora é: Usuário abre a página -> Vê o botão de login -> Clica para logar com a conta Google -> Após o sucesso, o botão de "Iniciar Caça" aparece -> O usuário clica para entrar na experiência AR.
+
+## 29/08/2025 - Tela de Seleção de Local e Persistência de Dados
+
+### Problema
+O jogador precisa escolher uma área de jogo antes de entrar na experiência AR. Além disso, os dados do jogador (perfil, pontos, etc.) precisam ser salvos no banco de dados assim que ele faz o login pela primeira vez.
+
+### Solução
+1.  **SDK do Realtime Database:** A importação do SDK do Firebase Realtime Database foi adicionada ao `index.html`.
+2.  **UI da Tela de Localização:**
+    - Uma nova tela (`#location-screen`) foi criada e estilizada. Ela fica visível após o login e antes da entrada na AR.
+    - Dois botões representam as áreas de jogo definidas nos requisitos.
+    - O botão "Iniciar Caça" foi movido para esta tela e permanece desabilitado até que um local seja escolhido.
+3.  **Lógica de Seleção:**
+    - Um event listener foi adicionado aos botões de local. Ao clicar, o local correspondente é salvo em uma variável `selectedLocation`, o botão recebe um destaque visual e o botão "Iniciar Caça" é habilitado.
+4.  **Persistência de Dados:**
+    - Uma função `saveUserToDatabase` foi criada.
+    - Essa função é chamada logo após o login do usuário ser confirmado pelo `onAuthStateChanged`.
+    - Ela verifica se o usuário já existe no caminho `/users/` do Realtime Database. Se não existir, ela cria um novo registro com os dados básicos do perfil (nome, email) e estatísticas iniciais (pontos, capturas, nível).
+5.  **Atualização do Fluxo:** O fluxo do usuário agora é: Login -> Seleção de Local -> Iniciar Caça (AR).
+
+## 29/08/2025 - Integração de GPS e Minimapa
+
+### Problema
+O núcleo do jogo exige a navegação em um espaço real. É preciso integrar o GPS do dispositivo para rastrear a posição do jogador e exibir essa informação, juntamente com os alvos (fantasmas), em um minimapa.
+
+### Solução
+1.  **Biblioteca Leaflet.js:** A biblioteca de mapas interativos Leaflet.js foi adicionada ao projeto para renderizar o minimapa. O CSS e o JS da biblioteca foram incluídos no `<head>` do `index.html`.
+2.  **Inicialização do Mapa:** Uma função `initMap` foi criada. Ela é chamada quando o jogo começa e inicializa o mapa dentro do `div#minimap`, usando a localização central escolhida pelo jogador.
+3.  **Rastreamento por GPS:** A função `startGps` utiliza `navigator.geolocation.watchPosition` para receber atualizações contínuas da localização do jogador.
+4.  **Marcadores no Mapa:**
+    - Um marcador customizado para o jogador é criado e atualizado a cada nova posição do GPS.
+    - Uma função `generateGhost` cria um marcador para um fantasma em uma posição aleatória, calculada dentro de um raio próximo ao centro da área de jogo.
+5.  **Cálculo de Proximidade:**
+    - A cada atualização do GPS, a distância entre o jogador e o fantasma é calculada usando a fórmula de Haversine.
+    - Um novo elemento na UI (`#distance-info`) exibe essa distância em tempo real.
+    - Se a distância for menor que o raio de captura (definido como 15 metros), uma flag `canPlaceGhost` é ativada e a UI notifica o jogador que ele pode iniciar a captura em AR.
+6.  **Integração com AR:** A lógica de `onXRFrame`, que exibe a retícula de posicionamento, agora só é ativada se a flag `canPlaceGhost` for verdadeira, garantindo que os fantasmas só possam ser colocados no mundo real quando o jogador está fisicamente perto da sua localização virtual.
