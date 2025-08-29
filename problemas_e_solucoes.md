@@ -77,3 +77,19 @@ O núcleo do jogo exige a navegação em um espaço real. É preciso integrar o 
     - Um novo elemento na UI (`#distance-info`) exibe essa distância em tempo real.
     - Se a distância for menor que o raio de captura (definido como 15 metros), uma flag `canPlaceGhost` é ativada e a UI notifica o jogador que ele pode iniciar a captura em AR.
 6.  **Integração com AR:** A lógica de `onXRFrame`, que exibe a retícula de posicionamento, agora só é ativada se a flag `canPlaceGhost` for verdadeira, garantindo que os fantasmas só possam ser colocados no mundo real quando o jogador está fisicamente perto da sua localização virtual.
+
+## 29/08/2025 - Ajustes de UI e Testabilidade
+
+### Problema
+Após testes iniciais, foram solicitados ajustes na interface para melhorar a usabilidade e na lógica do jogo para facilitar novos testes.
+
+### Solução
+1.  **Ajustes de Interface:**
+    - O CSS foi modificado para aumentar o tamanho dos ícones `#inventory-icon` (Ghost Trap) e `#proton-pack-icon`.
+    - O tamanho do `#capture-button` foi reduzido para ser menos obstrutivo.
+    - O `border-radius` do `#minimap` foi alterado para `50%` para deixá-lo com uma aparência circular.
+2.  **Facilidade de Teste:**
+    - Na função `generateGhost`, o raio para o surgimento do fantasma foi drasticamente reduzido. Isso força o fantasma a sempre aparecer a poucos metros do jogador, eliminando a necessidade de longas caminhadas durante o teste do ciclo de captura.
+3.  **Correção de Bug (Firebase):**
+    - Os logs do console indicaram um erro de "Permission Denied" ao tentar salvar os dados do usuário. A causa foi identificada como as regras de segurança padrão do Firebase Realtime Database.
+    - A solução recomendada foi atualizar as regras no console do Firebase para permitir que usuários autenticados leiam e escrevam em seus próprios dados, usando a regra: `".write": "$uid === auth.uid"`.

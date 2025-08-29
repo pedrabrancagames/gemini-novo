@@ -150,7 +150,7 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            width: 50px;
+            width: 70px; /* Aumentado */
             z-index: 15;
             cursor: pointer;
         }
@@ -159,7 +159,7 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 70px;
+            width: 90px; /* Aumentado */
             z-index: 15;
         }
 
@@ -168,31 +168,40 @@
             bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
-            width: 80px;
-            height: 80px;
+            width: 70px; /* Diminuído */
+            height: 70px; /* Diminuído */
             background-color: rgba(146, 244, 40, 0.3);
-            border: 4px solid #92F428;
+            border: 3px solid #92F428;
             border-radius: 50%;
             z-index: 15;
             cursor: pointer;
+            overflow: hidden;
+        }
+        #capture-progress {
+            width: 100%;
+            height: 100%;
+            background-color: #92F428;
+            transform: translateY(100%);
+            transition: transform 0.1s linear;
         }
 
         #minimap {
             position: fixed;
             bottom: 20px;
             left: 20px;
-            width: 150px; /* Aumentado */
-            height: 150px; /* Aumentado */
+            width: 150px;
+            height: 150px;
             background-color: rgba(0, 0, 0, 0.6);
             border: 2px solid #92F428;
-            border-radius: 15px; /* Quadrado com cantos arredondados */
+            border-radius: 50%; /* Circular */
             z-index: 20;
             box-shadow: 0 0 15px rgba(146, 244, 40, 0.5);
+            overflow: hidden; /* Garante que o mapa interno fique circular */
         }
 
         #distance-info {
             position: fixed;
-            bottom: 180px; /* Acima do minimapa */
+            bottom: 180px;
             left: 20px;
             background-color: rgba(0,0,0,0.7);
             padding: 5px 10px;
@@ -217,6 +226,8 @@
         background="color: transparent;">
         <a-assets>
             <a-asset-item id="ghost-model" src="assets/models/ghost.glb"></a-asset-item>
+            <audio id="proton-beam-sound" src="assets/audio/proton-beam.mp3" preload="auto"></audio>
+            <audio id="capture-success-sound" src="assets/audio/inventory_full.mp3" preload="auto"></audio>
         </a-assets>
         <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
         <a-light type="directional" color="#FFF" intensity="0.8" position="-1 2 1"></a-light>
@@ -248,7 +259,7 @@
             <img id="top-left-logo" src="assets/images/logo.png" alt="Logo">
             <img id="inventory-icon" src="assets/images/ghost_trap.png" alt="Inventário">
             <img id="proton-pack-icon" src="assets/images/proton_pack.png" alt="Proton Pack">
-            <div id="capture-button"></div>
+            <div id="capture-button"><div id="capture-progress"></div></div>
             <div id="minimap"></div>
             <div id="distance-info"></div>
         </div>
@@ -257,10 +268,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         document.addEventListener('DOMContentLoaded', () => {
             const CAPTURE_RADIUS = 15; // metros
+            const CAPTURE_DURATION = 5000; // 5 segundos
 
             const firebaseConfig = {
                 apiKey: "AIzaSyC8DE4F6mU9oyRw8cLU5vcfxOp5RxLcgHA",
@@ -291,9 +303,13 @@
             const locationButtons = document.querySelectorAll('.location-button');
             const minimapElement = document.getElementById('minimap');
             const distanceInfo = document.getElementById('distance-info');
+            const captureButton = document.getElementById('capture-button');
+            const captureProgress = document.getElementById('capture-progress');
 
             const reticle = document.getElementById('reticle');
             const ghostEntity = document.getElementById('ghost');
+            const protonBeamSound = document.getElementById('proton-beam-sound');
+            const captureSuccessSound = document.getElementById('capture-success-sound');
 
             let gameInitialized = false;
             let hitTestSource = null;
@@ -301,21 +317,22 @@
             let currentUser = null;
             let selectedLocation = null;
             let canPlaceGhost = false;
+            let isCapturing = false;
+            let captureTimer, progressInterval;
 
             let map, playerMarker, ghostMarker;
             let ghostPosition = {};
+            let userStats = { points: 0, captures: 0 };
 
             function saveUserToDatabase(user) {
                 const userRef = ref(database, 'users/' + user.uid);
                 get(userRef).then((snapshot) => {
-                    if (!snapshot.exists()) {
-                        set(userRef, {
-                            displayName: user.displayName,
-                            email: user.email,
-                            points: 0,
-                            captures: 0,
-                            level: 1
-                        });
+                    if (snapshot.exists()) {
+                        userStats = snapshot.val();
+                    } else {
+                        const newUserStats = { displayName: user.displayName, email: user.email, points: 0, captures: 0, level: 1 };
+                        set(userRef, newUserStats);
+                        userStats = newUserStats;
                     }
                 });
             }
@@ -350,10 +367,7 @@
             });
 
             async function startARSession() {
-                if (!selectedLocation) {
-                    alert("Por favor, selecione uma área de caça primeiro!");
-                    return;
-                }
+                if (!selectedLocation) return;
                 enterButton.disabled = true;
                 try {
                     await sceneEl.enterAR();
@@ -375,27 +389,22 @@
 
             function initMap() {
                 map = L.map(minimapElement).setView([selectedLocation.lat, selectedLocation.lon], 18);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
                 generateGhost();
                 startGps();
             }
 
             function generateGhost() {
-                const radius = 0.001; // Aproximadamente 111 metros
+                const radius = 0.0001; // Raio pequeno para testes (aprox. 11 metros)
                 ghostPosition.lat = selectedLocation.lat + (Math.random() - 0.5) * radius * 2;
                 ghostPosition.lon = selectedLocation.lon + (Math.random() - 0.5) * radius * 2;
                 
                 const ghostIcon = L.icon({ iconUrl: 'assets/images/logo.png', iconSize: [30, 30] });
-                ghostMarker = L.marker([ghostPosition.lat, ghostPosition.lon], { icon: ghostIcon }).addTo(map);
+                if(ghostMarker) ghostMarker.setLatLng([ghostPosition.lat, ghostPosition.lon]);
+                else ghostMarker = L.marker([ghostPosition.lat, ghostPosition.lon], { icon: ghostIcon }).addTo(map);
             }
 
             function startGps() {
-                if (!navigator.geolocation) {
-                    alert("Geolocalização não é suportada pelo seu navegador.");
-                    return;
-                }
                 navigator.geolocation.watchPosition(onGpsUpdate, 
                     () => { alert("Não foi possível obter sua localização."); },
                     { enableHighAccuracy: true }
@@ -412,25 +421,19 @@
                 } else {
                     playerMarker.setLatLng([userLat, userLon]);
                 }
-                map.setView([userLat, userLon], 18);
+                map.setView([userLat, userLon], map.getZoom());
                 checkProximity(userLat, userLon);
             }
 
             function checkProximity(userLat, userLon) {
-                const R = 6371e3; // Raio da Terra em metros
-                const phi1 = userLat * Math.PI/180;
-                const phi2 = ghostPosition.lat * Math.PI/180;
-                const deltaPhi = (ghostPosition.lat-userLat) * Math.PI/180;
-                const deltaLambda = (ghostPosition.lon-userLon) * Math.PI/180;
-
-                const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
-                          Math.cos(phi1) * Math.cos(phi2) *
-                          Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                const distance = R * c; // em metros
+                const R = 6371e3;
+                const phi1 = userLat * Math.PI/180, phi2 = ghostPosition.lat * Math.PI/180;
+                const dPhi = (ghostPosition.lat-userLat) * Math.PI/180;
+                const dLambda = (ghostPosition.lon-userLon) * Math.PI/180;
+                const a = Math.sin(dPhi/2) * Math.sin(dPhi/2) + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLambda/2) * Math.sin(dLambda/2);
+                const distance = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 
                 distanceInfo.innerText = `Fantasma: ${distance.toFixed(0)}m`;
-
                 if (distance <= CAPTURE_RADIUS) {
                     canPlaceGhost = true;
                     distanceInfo.innerText = "FANTASMA PRÓXIMO! OLHE AO REDOR!";
@@ -441,14 +444,53 @@
                 }
             }
 
+            function startCapture() {
+                if (isCapturing || !ghostPlaced) return;
+                isCapturing = true;
+                protonBeamSound.play();
+                let startTime = Date.now();
+
+                progressInterval = setInterval(() => {
+                    const elapsedTime = Date.now() - startTime;
+                    const progress = Math.min(elapsedTime / CAPTURE_DURATION, 1);
+                    captureProgress.style.transform = `translateY(${100 - progress * 100}%)`;
+                }, 100);
+
+                captureTimer = setTimeout(() => {
+                    ghostCaptured();
+                }, CAPTURE_DURATION);
+            }
+
+            function cancelCapture() {
+                if (!isCapturing) return;
+                isCapturing = false;
+                protonBeamSound.pause();
+                protonBeamSound.currentTime = 0;
+                clearTimeout(captureTimer);
+                clearInterval(progressInterval);
+                captureProgress.style.transform = 'translateY(100%)';
+            }
+
+            function ghostCaptured() {
+                cancelCapture();
+                captureSuccessSound.play();
+                ghostEntity.setAttribute('visible', false);
+                ghostPlaced = false;
+                canPlaceGhost = false;
+
+                userStats.points += 10;
+                userStats.captures += 1;
+                const userRef = ref(database, 'users/' + currentUser.uid);
+                update(userRef, { points: userStats.points, captures: userStats.captures });
+
+                alert(`Fantasma capturado! Você agora tem ${userStats.points} pontos.`);
+                generateGhost();
+            }
+
             async function setupHitTest(session, renderer) {
-                try {
-                    const referenceSpace = await session.requestReferenceSpace('viewer');
-                    hitTestSource = await session.requestHitTestSource({ space: referenceSpace });
-                    renderer.setAnimationLoop(onXRFrame);
-                } catch (error) {
-                    console.error('Falha ao configurar o hit-test:', error);
-                }
+                const referenceSpace = await session.requestReferenceSpace('viewer');
+                hitTestSource = await session.requestHitTestSource({ space: referenceSpace });
+                renderer.setAnimationLoop(onXRFrame);
             }
 
             function onXRFrame(timestamp, frame) {
@@ -460,13 +502,9 @@
                 if (hitTestResults.length > 0) {
                     const hit = hitTestResults[0];
                     const pose = hit.getPose(sceneEl.renderer.xr.getReferenceSpace());
-                    if (pose) {
-                        reticle.setAttribute('visible', true);
-                        reticle.object3D.matrix.fromArray(pose.transform.matrix);
-                        reticle.object3D.matrix.decompose(reticle.object3D.position, reticle.object3D.quaternion, reticle.object3D.scale);
-                    }
-                } else {
-                    reticle.setAttribute('visible', false);
+                    reticle.setAttribute('visible', true);
+                    reticle.object3D.matrix.fromArray(pose.transform.matrix);
+                    reticle.object3D.matrix.decompose(reticle.object3D.position, reticle.object3D.quaternion, reticle.object3D.scale);
                 }
             }
 
@@ -482,6 +520,11 @@
 
             googleLoginButton.addEventListener('click', handleGoogleLogin);
             enterButton.addEventListener('click', startARSession);
+            captureButton.addEventListener('mousedown', startCapture);
+            captureButton.addEventListener('mouseup', cancelCapture);
+            captureButton.addEventListener('mouseleave', cancelCapture);
+            captureButton.addEventListener('touchstart', startCapture);
+            captureButton.addEventListener('touchend', cancelCapture);
             sceneEl.addEventListener('enter-vr', initGame);
             sceneEl.addEventListener('click', (event) => {
                 if (event.target.classList.contains('ui-element')) return;
