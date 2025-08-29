@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Ghostbusters AR</title>
+    <meta name="description" content="Capture fantasmas que invadiram o seu mundo.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+    <style>
+        /* Estilos Gerais */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+        }
+
+        /* Overlay principal que cobre toda a tela */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10;
+            pointer-events: none;
+            /* Permite cliques através do overlay */
+        }
+
+        /* Classe para elementos de UI que devem receber eventos de clique */
+        .ui-element {
+            pointer-events: auto;
+        }
+
+        /* Telas de UI (Carregamento, Login, etc.) */
+        .ui-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .ui-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Tela de Carregamento */
+        #logo {
+            width: 80%;
+            max-width: 350px;
+            margin-bottom: 40px;
+        }
+
+        #progress-bar-container {
+            width: 70%;
+            max-width: 300px;
+            height: 15px;
+            border: 2px solid #92F428;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            background-color: rgba(146, 244, 40, 0.1);
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #92F428;
+            transition: width 0.3s ease-in-out;
+        }
+
+        #loading-info {
+            font-size: 1em;
+            color: #ccc;
+            margin-top: 10px;
+        }
+
+        #enter-button {
+            display: none;
+            /* Começa escondido */
+            margin-top: 30px;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #000;
+            background-color: #92F428;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        /* UI Principal do Jogo (conforme requisitos) */
+        #game-ui {
+            display: none;
+            /* Começa escondida */
+        }
+
+        #top-left-logo {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 60px;
+            z-index: 15;
+            opacity: 0.8;
+        }
+
+        #inventory-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            z-index: 15;
+            cursor: pointer;
+        }
+
+        #proton-pack-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 70px;
+            z-index: 15;
+        }
+
+        #capture-button {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            background-color: rgba(146, 244, 40, 0.3);
+            border: 4px solid #92F428;
+            border-radius: 50%;
+            z-index: 15;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #capture-button:active {
+            background-color: rgba(146, 244, 40, 0.6);
+        }
+
+        #minimap {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 2px solid #92F428;
+            border-radius: 50%;
+            z-index: 15;
+            cursor: pointer;
+        }
+
+        /* Esconder botões padrão do A-Frame */
+        .a-enter-vr-button,
+        .a-enter-ar-button {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Cena A-Frame para Realidade Aumentada -->
+    <a-scene id="ar-scene"
+        webxr="requiredFeatures: hit-test, local-floor; optionalFeatures: dom-overlay; overlayElement: #overlay;"
+        vr-mode-ui="enabled: false"
+        renderer="logarithmicDepthBuffer: true; colorManagement: true; antialias: true; physicallyCorrectLights: true;"
+        background="color: transparent;">
+
+        <!-- Assets a serem pré-carregados -->
+        <a-assets>
+            <a-asset-item id="ghost-model" src="assets/models/ghost.glb"></a-asset-item>
+        </a-assets>
+
+        <!-- Iluminação da cena -->
+        <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
+        <a-light type="directional" color="#FFF" intensity="0.8" position="-1 2 1"></a-light>
+
+        <!-- Câmera do jogador -->
+        <a-camera fov="80"></a-camera>
+
+        <!-- Retícula para indicar a superfície detectada -->
+        <a-entity id="reticle" visible="false"
+            geometry="primitive: ring; radius-inner: 0.04; radius-outer: 0.06;"
+            material="color: #92F428; shader: flat;"></a-entity>
+
+        <!-- Entidade para o fantasma -->
+        <a-entity id="ghost" gltf-model="#ghost-model" visible="false"></a-entity>
+
+    </a-scene>
+
+    <!-- Interface do Usuário (UI) -->
+    <div id="overlay">
+        <!-- Tela de Carregamento -->
+        <div id="loading-screen" class="ui-screen ui-element">
+            <img id="logo" src="assets/images/logo.png" alt="Ghostbusters Logo">
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+            <p id="loading-info">Carregando equipamentos...</p>
+            <button id="enter-button" class="ui-element">Iniciar Caça</button>
+        </div>
+
+        <!-- UI Principal do Jogo -->
+        <div id="game-ui" class="ui-element">
+            <img id="top-left-logo" src="assets/images/logo.png" alt="Logo">
+            <img id="inventory-icon" src="assets/images/ghost_trap.png" alt="Inventário">
+            <img id="proton-pack-icon" src="assets/images/proton_pack.png" alt="Proton Pack">
+            <div id="capture-button"></div>
+            <div id="minimap"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Elementos da UI
+            const sceneEl = document.getElementById('ar-scene');
+            const loadingScreen = document.getElementById('loading-screen');
+            const enterButton = document.getElementById('enter-button');
+            const loadingInfo = document.getElementById('loading-info');
+            const progressBar = document.getElementById('progress-bar');
+            const gameUi = document.getElementById('game-ui');
+
+            // Elementos da Cena AR
+            const reticle = document.getElementById('reticle');
+            const ghostEntity = document.getElementById('ghost');
+
+            // Estado do Jogo
+            let gameInitialized = false;
+            let hitTestSource = null;
+            let ghostPlaced = false;
+
+            // 1. Simular o carregamento de assets
+            function simulateLoading() {
+                let progress = 0;
+                loadingInfo.innerText = 'Verificando equipamentos...';
+                const interval = setInterval(() => {
+                    progress += 25;
+                    progressBar.style.width = progress + '%';
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        loadingInfo.innerText = "Tudo pronto! Vamos caçar!";
+                        enterButton.style.display = 'block';
+                    }
+                }, 400);
+            }
+
+            // 2. Lidar com a entrada no modo AR
+            async function startARSession() {
+                if (enterButton.disabled) return;
+                enterButton.disabled = true;
+                loadingInfo.innerText = "Iniciando câmera de prótons...";
+
+                try {
+                    // Verificar suporte a WebXR e AR
+                    if (!navigator.xr) throw new Error('WebXR não é suportado neste navegador.');
+                    const isARSupported = await navigator.xr.isSessionSupported('immersive-ar');
+                    if (!isARSupported) throw new Error('AR não é suportado neste dispositivo.');
+                    
+                    // Iniciar a sessão AR
+                    await sceneEl.enterAR();
+
+                } catch (error) {
+                    loadingInfo.innerText = `Erro: ${error.message}`;
+                    enterButton.disabled = false;
+                }
+            }
+
+            // 3. Inicializar o jogo quando a sessão AR começar
+            function initGame() {
+                gameInitialized = true;
+                loadingScreen.classList.add('hidden');
+                gameUi.style.display = 'block';
+
+                const renderer = sceneEl.renderer;
+                const xrSession = renderer.xr.getSession();
+
+                if (xrSession) {
+                    setupHitTest(xrSession, renderer);
+                } else {
+                    console.error("Sessão XR não encontrada na inicialização.");
+                }
+            }
+
+            // 4. Configurar o Hit-Test para detectar superfícies
+            async function setupHitTest(session, renderer) {
+                try {
+                    const referenceSpace = await session.requestReferenceSpace('viewer');
+                    hitTestSource = await session.requestHitTestSource({ space: referenceSpace });
+                    // Iniciar o loop de renderização
+                    renderer.setAnimationLoop(onXRFrame);
+                } catch (error) {
+                    console.error('Falha ao configurar o hit-test:', error);
+                }
+            }
+
+            // 5. Loop de renderização executado a cada frame
+            function onXRFrame(timestamp, frame) {
+                if (!frame || !hitTestSource) return;
+
+                // Se o fantasma já foi colocado, não precisamos mais da retícula
+                if (ghostPlaced) {
+                    reticle.setAttribute('visible', 'false');
+                    return;
+                }
+
+                const hitTestResults = frame.getHitTestResults(hitTestSource);
+
+                if (hitTestResults.length > 0) {
+                    const hit = hitTestResults[0];
+                    const pose = hit.getPose(sceneEl.renderer.xr.getReferenceSpace());
+                    if (pose) {
+                        // Mostrar e posicionar a retícula
+                        reticle.setAttribute('visible', true);
+                        reticle.object3D.matrix.fromArray(pose.transform.matrix);
+                        reticle.object3D.matrix.decompose(reticle.object3D.position, reticle.object3D.quaternion, reticle.object3D.scale);
+                    }
+                } else {
+                    reticle.setAttribute('visible', false);
+                }
+            }
+
+            // 6. Colocar o fantasma na cena
+            function placeGhost() {
+                if (ghostPlaced || !reticle.getAttribute('visible')) return;
+
+                ghostEntity.setAttribute('position', reticle.object3D.position);
+                ghostEntity.setAttribute('visible', 'true');
+                
+                // Ajustar a escala do fantasma
+                const scale = 0.3;
+                ghostEntity.object3D.scale.set(scale, scale, scale);
+                
+                ghostPlaced = true;
+                reticle.setAttribute('visible', 'false'); // Esconder a retícula
+                console.log('Fantasma colocado na posição:', reticle.object3D.position);
+            }
+
+            // --- Event Listeners ---
+            enterButton.addEventListener('click', startARSession);
+            sceneEl.addEventListener('enter-vr', initGame); // 'enter-vr' é o evento que A-Frame dispara para AR também
+            
+            // Colocar o fantasma com um clique na tela
+            sceneEl.addEventListener('click', (event) => {
+                // Ignorar cliques nos botões da UI
+                if (event.target.classList.contains('ui-element')) return;
+                
+                if (gameInitialized) {
+                    placeGhost();
+                }
+            });
+
+            // Iniciar o processo
+            simulateLoading();
+        });
+    </script>
+</body>
+
+</html>
