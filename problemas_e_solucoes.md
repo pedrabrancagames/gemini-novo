@@ -2,14 +2,15 @@
 
 [...]
 
-## 29/08/2025 - Refatoração para Componente A-Frame e Correção de Bugs
+## 29/08/2025 - Correção Final do Bug de Posicionamento AR
 
 ### Problema
-O jogo continuava travando na tela de seleção de local, e a investigação apontou para um erro fatal no loop de renderização da AR (`onXRFrame`). Adicionalmente, alguns ícones da interface haviam desaparecido após uma refatoração anterior.
+Mesmo após a refatoração do código e a correção do erro fatal no loop de renderização, o fantasma ainda não aparecia na câmera AR. A retícula de posicionamento aparecia corretamente, indicando que o sistema de detecção de superfícies estava funcional, mas o ato de tocar na tela para posicionar o objeto não surtia efeito visual.
 
 ### Solução
-1.  **Refatoração para Componente A-Frame:** A causa do erro fatal foi a maneira como o loop de renderização estava sendo gerenciado. A solução definitiva foi reescrever toda a lógica do jogo dentro de um **componente A-Frame customizado** (`game-manager`).
-    - Isso move o código para a arquitetura padrão e recomendada pelo A-Frame.
-    - O loop de renderização agora é gerenciado pelo método `tick(time, timeDelta)` do componente, que é mais estável e seguro, resolvendo o travamento.
-2.  **Correção da UI:** Os `<img>` da logo do jogo e da Proton Pack foram adicionados de volta ao `index.html` e devidamente estilizados no `style.css`, corrigindo a regressão visual.
-3.  **Consolidação Final:** Todas as funcionalidades (Login, Seleção de Local, GPS, Minimapa, Captura, Inventário, QR Code, Easter Egg do Ecto-1) foram migradas para dentro da nova estrutura de componente, resultando em um código mais limpo, organizado e, mais importante, funcional.
+Uma análise detalhada da função `placeObject` revelou o erro final: a linha de código que definia a **escala** do modelo 3D havia sido perdida durante as refatorações. Sem uma escala definida, o objeto era criado com tamanho 0 ou um tamanho inválido, tornando-o invisível.
+
+1.  **Correção da Escala:** A linha `entityToPlace.setAttribute('scale', '0.3 0.3 0.3');` foi adicionada à função `placeObject`.
+2.  **Lógica de Debug Removida:** A alteração que forçava a retícula a aparecer a todo momento foi revertida, pois o bug principal foi encontrado. A retícula agora só aparece quando o jogador está de fato próximo a um fantasma (`objectToPlace` está definido).
+
+Com esta correção, o ciclo de gameplay está totalmente funcional e o principal bug do jogo foi resolvido.

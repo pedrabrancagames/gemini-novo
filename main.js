@@ -5,7 +5,8 @@ import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/fire
 AFRAME.registerComponent('game-manager', {
     init: function () {
         this.CAPTURE_RADIUS = 15;
-        this.CAPTURE_DURATION = 5000;
+        this.CAPTURE_DURATION_NORMAL = 5000;
+        this.CAPTURE_DURATION_STRONG = 8000;
         this.INVENTORY_LIMIT = 5;
         this.CONTAINMENT_UNIT_ID = "GHOSTBUSTERS_CONTAINMENT_UNIT_01";
         this.ECTO1_UNLOCK_COUNT = 5;
@@ -45,7 +46,7 @@ AFRAME.registerComponent('game-manager', {
         this.playerMarker = null;
         this.ghostMarker = null;
         this.ecto1Marker = null;
-        this.ghostPosition = {};
+        this.ghostData = {};
         this.userStats = { points: 0, captures: 0, ecto1Unlocked: false };
         this.html5QrCode = null;
     },
@@ -70,6 +71,7 @@ AFRAME.registerComponent('game-manager', {
         this.ghostCaptured = this.ghostCaptured.bind(this);
         this.setupHitTest = this.setupHitTest.bind(this);
         this.placeObject = this.placeObject.bind(this);
+        this.tick = this.tick.bind(this);
     },
 
     initializeDOMElements: function () {
@@ -153,9 +155,6 @@ AFRAME.registerComponent('game-manager', {
                 this.inventory = [];
             }
             this.updateInventoryUI();
-            if (this.userStats.ecto1Unlocked) {
-                this.showEcto1OnMap();
-            }
         });
     },
 
@@ -183,7 +182,7 @@ AFRAME.registerComponent('game-manager', {
         } else {
             this.inventory.forEach(ghost => {
                 const li = document.createElement('li');
-                li.textContent = ghost.type + ' - ID: ' + ghost.id;
+                li.textContent = `${ghost.type} (Pontos: ${ghost.points}) - ID: ${ghost.id}`;
                 this.ghostList.appendChild(li);
             });
             this.depositButton.style.display = 'block';
@@ -253,12 +252,19 @@ AFRAME.registerComponent('game-manager', {
             return;
         }
         const radius = 0.0001;
-        this.ghostPosition.lat = this.selectedLocation.lat + (Math.random() - 0.5) * radius * 2;
-        this.ghostPosition.lon = this.selectedLocation.lon + (Math.random() - 0.5) * radius * 2;
+        const isStrong = Math.random() < 0.25;
+        this.ghostData = {
+            lat: this.selectedLocation.lat + (Math.random() - 0.5) * radius * 2,
+            lon: this.selectedLocation.lon + (Math.random() - 0.5) * radius * 2,
+            type: isStrong ? 'Fantasma Forte' : 'Fantasma Comum',
+            points: isStrong ? 25 : 10,
+            captureDuration: isStrong ? this.CAPTURE_DURATION_STRONG : this.CAPTURE_DURATION_NORMAL
+        };
         
-        const ghostIcon = L.icon({ iconUrl: 'assets/images/logo.png', iconSize: [30, 30] });
-        if(this.ghostMarker) this.ghostMarker.setLatLng([this.ghostPosition.lat, this.ghostPosition.lon]);
-        else this.ghostMarker = L.marker([this.ghostPosition.lat, this.ghostPosition.lon], { icon: ghostIcon }).addTo(this.map);
+        const iconUrl = isStrong ? 'assets/images/pke_meter.png' : 'assets/images/logo.png';
+        const ghostIcon = L.icon({ iconUrl: iconUrl, iconSize: [35, 35] });
+        if(this.ghostMarker) this.ghostMarker.setLatLng([this.ghostData.lat, this.ghostData.lon]).setIcon(ghostIcon);
+        else this.ghostMarker = L.marker([this.ghostData.lat, this.ghostData.lon], { icon: ghostIcon }).addTo(this.map);
     },
 
     startGps: function () {
@@ -287,16 +293,16 @@ AFRAME.registerComponent('game-manager', {
         this.objectToPlace = null;
         this.distanceInfo.style.color = "#92F428";
 
-        if (this.inventory.length < this.INVENTORY_LIMIT) {
-            const dPhiGhost = (this.ghostPosition.lat-userLat) * Math.PI/180;
-            const dLambdaGhost = (this.ghostPosition.lon-userLon) * Math.PI/180;
-            const aGhost = Math.sin(dPhiGhost/2) * Math.sin(dPhiGhost/2) + Math.cos(userLat * Math.PI/180) * Math.cos(this.ghostPosition.lat * Math.PI/180) * Math.sin(dLambdaGhost/2) * Math.sin(dLambdaGhost/2);
+        if (this.inventory.length < this.INVENTORY_LIMIT && this.ghostData) {
+            const dPhiGhost = (this.ghostData.lat-userLat) * Math.PI/180;
+            const dLambdaGhost = (this.ghostData.lon-userLon) * Math.PI/180;
+            const aGhost = Math.sin(dPhiGhost/2) * Math.sin(dPhiGhost/2) + Math.cos(userLat * Math.PI/180) * Math.cos(this.ghostData.lat * Math.PI/180) * Math.sin(dLambdaGhost/2) * Math.sin(dLambdaGhost/2);
             const distanceGhost = R * (2 * Math.atan2(Math.sqrt(aGhost), Math.sqrt(1-aGhost)));
             this.distanceInfo.innerText = `Fantasma: ${distanceGhost.toFixed(0)}m`;
 
             if (distanceGhost <= this.CAPTURE_RADIUS) {
                 this.objectToPlace = 'ghost';
-                this.distanceInfo.innerText = "FANTASMA PRÓXIMO! OLHE AO REDOR!";
+                this.distanceInfo.innerText = `FANTASMA ${this.ghostData.type.toUpperCase()} PRÓXIMO!`;
                 this.distanceInfo.style.color = "#ff0000";
                 return;
             }
@@ -322,15 +328,16 @@ AFRAME.registerComponent('game-manager', {
         this.protonBeamSound.play();
         let startTime = Date.now();
 
+        const duration = this.ghostData.captureDuration;
         this.progressInterval = setInterval(() => {
             const elapsedTime = Date.now() - startTime;
-            const progress = Math.min(elapsedTime / this.CAPTURE_DURATION, 1);
+            const progress = Math.min(elapsedTime / duration, 1);
             this.captureProgress.style.transform = `translateY(${100 - progress * 100}%)`;
         }, 100);
 
         this.captureTimer = setTimeout(() => {
             this.ghostCaptured();
-        }, this.CAPTURE_DURATION);
+        }, duration);
     },
 
     cancelCapture: function () {
@@ -350,12 +357,12 @@ AFRAME.registerComponent('game-manager', {
         this.placedObjects.ghost = false;
         this.objectToPlace = null;
 
-        this.inventory.push({ id: Date.now(), type: 'Fantasma Comum' });
-        this.userStats.points += 10;
+        this.inventory.push({ id: Date.now(), type: this.ghostData.type, points: this.ghostData.points });
+        this.userStats.points += this.ghostData.points;
         this.userStats.captures += 1;
         this.updateInventoryUI();
 
-        if (this.userStats.captures === this.ECTO1_UNLOCK_COUNT && !this.userStats.ecto1Unlocked) {
+        if (this.userStats.captures >= this.ECTO1_UNLOCK_COUNT && !this.userStats.ecto1Unlocked) {
             this.userStats.ecto1Unlocked = true;
             this.showEcto1OnMap();
             alert("Você ouve um barulho de motor familiar... Algo especial apareceu no mapa!");
@@ -408,8 +415,9 @@ AFRAME.registerComponent('game-manager', {
         if (entityToPlace) {
             entityToPlace.setAttribute('position', this.reticle.object3D.position);
             entityToPlace.setAttribute('visible', 'true');
+            entityToPlace.setAttribute('scale', '0.3 0.3 0.3'); // CORREÇÃO DA ESCALA
             this.placedObjects[this.objectToPlace] = true;
         }
-        this.reticle.setAttribute('visible', false);
+        this.reticle.setAttribute('visible', 'false');
     }
 });
