@@ -146,20 +146,40 @@
             opacity: 0.8;
         }
 
-        #inventory-icon {
+        #inventory-icon-container {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 70px; /* Aumentado */
-            z-index: 15;
+            top: 15px;
+            right: 15px;
+            z-index: 25;
             cursor: pointer;
+        }
+
+        #inventory-icon {
+            width: 70px;
+        }
+
+        #inventory-badge {
+            position: absolute;
+            bottom: 5px;
+            right: 0px;
+            background-color: #ff0000;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
+            border: 2px solid white;
         }
 
         #proton-pack-icon {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 90px; /* Aumentado */
+            width: 90px;
             z-index: 15;
         }
 
@@ -168,8 +188,8 @@
             bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
-            width: 70px; /* Diminuído */
-            height: 70px; /* Diminuído */
+            width: 70px;
+            height: 70px;
             background-color: rgba(146, 244, 40, 0.3);
             border: 3px solid #92F428;
             border-radius: 50%;
@@ -193,10 +213,10 @@
             height: 150px;
             background-color: rgba(0, 0, 0, 0.6);
             border: 2px solid #92F428;
-            border-radius: 50%; /* Circular */
+            border-radius: 50%;
             z-index: 20;
             box-shadow: 0 0 15px rgba(146, 244, 40, 0.5);
-            overflow: hidden; /* Garante que o mapa interno fique circular */
+            overflow: hidden;
         }
 
         #distance-info {
@@ -209,6 +229,63 @@
             color: #92F428;
             font-weight: bold;
             z-index: 20;
+        }
+
+        /* Modal do Inventário */
+        #inventory-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 30;
+        }
+
+        #inventory-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            background: #1a1a1a;
+            border: 2px solid #92F428;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(146, 244, 40, 0.5);
+        }
+
+        #inventory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #92F428;
+        }
+
+        #close-inventory-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        #ghost-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #ghost-list li {
+            padding: 10px;
+            background: #333;
+            border-radius: 5px;
+            margin-bottom: 8px;
         }
 
         .a-enter-vr-button,
@@ -257,11 +334,24 @@
 
         <div id="game-ui" class="ui-element">
             <img id="top-left-logo" src="assets/images/logo.png" alt="Logo">
-            <img id="inventory-icon" src="assets/images/ghost_trap.png" alt="Inventário">
+            <div id="inventory-icon-container" class="ui-element">
+                <img id="inventory-icon" src="assets/images/ghost_trap.png" alt="Inventário">
+                <div id="inventory-badge">0/5</div>
+            </div>
             <img id="proton-pack-icon" src="assets/images/proton_pack.png" alt="Proton Pack">
             <div id="capture-button"><div id="capture-progress"></div></div>
             <div id="minimap"></div>
             <div id="distance-info"></div>
+        </div>
+
+        <div id="inventory-modal" class="ui-screen ui-element hidden">
+            <div id="inventory-content">
+                <div id="inventory-header">
+                    <h2>Inventário de Fantasmas</h2>
+                    <button id="close-inventory-button" class="ui-element">&times;</button>
+                </div>
+                <ul id="ghost-list"></ul>
+            </div>
         </div>
     </div>
 
@@ -271,8 +361,9 @@
         import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         document.addEventListener('DOMContentLoaded', () => {
-            const CAPTURE_RADIUS = 15; // metros
-            const CAPTURE_DURATION = 5000; // 5 segundos
+            const CAPTURE_RADIUS = 15;
+            const CAPTURE_DURATION = 5000;
+            const INVENTORY_LIMIT = 5;
 
             const firebaseConfig = {
                 apiKey: "AIzaSyC8DE4F6mU9oyRw8cLU5vcfxOp5RxLcgHA",
@@ -305,6 +396,11 @@
             const distanceInfo = document.getElementById('distance-info');
             const captureButton = document.getElementById('capture-button');
             const captureProgress = document.getElementById('capture-progress');
+            const inventoryIconContainer = document.getElementById('inventory-icon-container');
+            const inventoryModal = document.getElementById('inventory-modal');
+            const closeInventoryButton = document.getElementById('close-inventory-button');
+            const inventoryBadge = document.getElementById('inventory-badge');
+            const ghostList = document.getElementById('ghost-list');
 
             const reticle = document.getElementById('reticle');
             const ghostEntity = document.getElementById('ghost');
@@ -319,6 +415,7 @@
             let canPlaceGhost = false;
             let isCapturing = false;
             let captureTimer, progressInterval;
+            let inventory = [];
 
             let map, playerMarker, ghostMarker;
             let ghostPosition = {};
@@ -329,11 +426,14 @@
                 get(userRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         userStats = snapshot.val();
+                        inventory = userStats.inventory || [];
                     } else {
-                        const newUserStats = { displayName: user.displayName, email: user.email, points: 0, captures: 0, level: 1 };
+                        const newUserStats = { displayName: user.displayName, email: user.email, points: 0, captures: 0, level: 1, inventory: [] };
                         set(userRef, newUserStats);
                         userStats = newUserStats;
+                        inventory = [];
                     }
+                    updateInventoryUI();
                 });
             }
 
@@ -395,7 +495,12 @@
             }
 
             function generateGhost() {
-                const radius = 0.0001; // Raio pequeno para testes (aprox. 11 metros)
+                if (inventory.length >= INVENTORY_LIMIT) {
+                    distanceInfo.innerText = "Inventário Cheio!";
+                    if(ghostMarker) ghostMarker.remove();
+                    return;
+                }
+                const radius = 0.0001;
                 ghostPosition.lat = selectedLocation.lat + (Math.random() - 0.5) * radius * 2;
                 ghostPosition.lon = selectedLocation.lon + (Math.random() - 0.5) * radius * 2;
                 
@@ -426,6 +531,7 @@
             }
 
             function checkProximity(userLat, userLon) {
+                if (inventory.length >= INVENTORY_LIMIT) return;
                 const R = 6371e3;
                 const phi1 = userLat * Math.PI/180, phi2 = ghostPosition.lat * Math.PI/180;
                 const dPhi = (ghostPosition.lat-userLat) * Math.PI/180;
@@ -445,7 +551,7 @@
             }
 
             function startCapture() {
-                if (isCapturing || !ghostPlaced) return;
+                if (isCapturing || !ghostPlaced || inventory.length >= INVENTORY_LIMIT) return;
                 isCapturing = true;
                 protonBeamSound.play();
                 let startTime = Date.now();
@@ -478,13 +584,30 @@
                 ghostPlaced = false;
                 canPlaceGhost = false;
 
+                inventory.push({ id: Date.now(), type: 'Fantasma Comum' });
                 userStats.points += 10;
                 userStats.captures += 1;
+                updateInventoryUI();
+
                 const userRef = ref(database, 'users/' + currentUser.uid);
-                update(userRef, { points: userStats.points, captures: userStats.captures });
+                update(userRef, { points: userStats.points, captures: userStats.captures, inventory: inventory });
 
                 alert(`Fantasma capturado! Você agora tem ${userStats.points} pontos.`);
                 generateGhost();
+            }
+
+            function updateInventoryUI() {
+                inventoryBadge.innerText = `${inventory.length}/${INVENTORY_LIMIT}`;
+                ghostList.innerHTML = '';
+                if (inventory.length === 0) {
+                    ghostList.innerHTML = '<li>Inventário vazio.</li>';
+                } else {
+                    inventory.forEach(ghost => {
+                        const li = document.createElement('li');
+                        li.textContent = ghost.type + ' - ID: ' + ghost.id;
+                        ghostList.appendChild(li);
+                    });
+                }
             }
 
             async function setupHitTest(session, renderer) {
@@ -525,6 +648,9 @@
             captureButton.addEventListener('mouseleave', cancelCapture);
             captureButton.addEventListener('touchstart', startCapture);
             captureButton.addEventListener('touchend', cancelCapture);
+            inventoryIconContainer.addEventListener('click', () => inventoryModal.classList.remove('hidden'));
+            closeInventoryButton.addEventListener('click', () => inventoryModal.classList.add('hidden'));
+
             sceneEl.addEventListener('enter-vr', initGame);
             sceneEl.addEventListener('click', (event) => {
                 if (event.target.classList.contains('ui-element')) return;
