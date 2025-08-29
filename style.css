@@ -1,0 +1,282 @@
+/* Estilos Gerais */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Arial', sans-serif;
+    background-color: #000;
+    color: #fff;
+}
+
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.ui-element {
+    pointer-events: auto;
+}
+
+.ui-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease-out;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.ui-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#logo {
+    width: 80%;
+    max-width: 350px;
+    margin-bottom: 40px;
+}
+
+#loading-info, #location-info-text, #distance-info {
+    font-size: 1em;
+    color: #ccc;
+    text-align: center;
+    margin-top: 20px;
+    height: 20px;
+}
+
+.action-button {
+    display: none; 
+    margin-top: 20px;
+    padding: 12px 25px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+#google-login-button {
+    background-color: #4285F4;
+    color: #fff;
+}
+
+#enter-button, #deposit-button {
+    color: #000;
+    background-color: #92F428;
+}
+
+#enter-button:disabled {
+    background-color: #555;
+    color: #888;
+    cursor: not-allowed;
+}
+
+/* Tela de Seleção de Local */
+#location-buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 350px;
+}
+
+.location-button {
+    padding: 15px;
+    background-color: #333;
+    border: 2px solid #555;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.location-button.selected {
+    border-color: #92F428;
+    background-color: rgba(146, 244, 40, 0.2);
+    transform: scale(1.05);
+}
+
+/* UI Principal do Jogo */
+#game-ui {
+    display: none;
+}
+
+#inventory-icon-container {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 25;
+    cursor: pointer;
+}
+
+#inventory-icon {
+    width: 70px;
+}
+
+#inventory-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 0px;
+    background-color: #ff0000;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+    font-weight: bold;
+    border: 2px solid white;
+}
+
+#capture-button {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70px;
+    height: 70px;
+    background-color: rgba(146, 244, 40, 0.3);
+    border: 3px solid #92F428;
+    border-radius: 50%;
+    z-index: 15;
+    cursor: pointer;
+    overflow: hidden;
+}
+#capture-progress {
+    width: 100%;
+    height: 100%;
+    background-color: #92F428;
+    transform: translateY(100%);
+    transition: transform 0.1s linear;
+}
+
+#minimap {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 150px;
+    height: 150px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 2px solid #92F428;
+    border-radius: 50%;
+    z-index: 20;
+    box-shadow: 0 0 15px rgba(146, 244, 40, 0.5);
+    overflow: hidden;
+}
+
+#distance-info {
+    position: fixed;
+    bottom: 180px;
+    left: 20px;
+    background-color: rgba(0,0,0,0.7);
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #92F428;
+    font-weight: bold;
+    z-index: 20;
+}
+
+/* Modal do Inventário */
+#inventory-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 30;
+}
+
+#inventory-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: #1a1a1a;
+    border: 2px solid #92F428;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(146, 244, 40, 0.5);
+}
+
+#inventory-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #92F428;
+}
+
+#close-inventory-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+#ghost-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#ghost-list li {
+    padding: 10px;
+    background: #333;
+    border-radius: 5px;
+    margin-bottom: 8px;
+}
+
+/* QR Scanner */
+#qr-scanner-screen {
+    background-color: #222;
+    z-index: 40;
+}
+#qr-reader {
+    width: 90%;
+    max-width: 500px;
+    border: 4px dashed #92F428;
+    border-radius: 10px;
+}
+#close-scanner-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 2em;
+    color: white;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.a-enter-vr-button,
+.a-enter-ar-button {
+    display: none !important;
+}

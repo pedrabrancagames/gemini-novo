@@ -2,21 +2,16 @@
 
 [...]
 
-## 29/08/2025 - Unidade de Contenção com QR Code
+## 29/08/2025 - Refatoração do Código e Correção de Bug de AR
 
 ### Problema
-Para completar o ciclo de gameplay, os jogadores precisam de uma maneira de esvaziar seus inventários cheios. Conforme os requisitos, isso deve ser feito escaneando um QR Code em um local físico, simulando uma "Unidade de Contenção".
+O jogo estava travando na tela de seleção de local, impedindo o início da experiência de AR. A causa raiz era difícil de diagnosticar apenas pelos logs. Além disso, todo o código (HTML, CSS, JS) estava em um único arquivo `index.html`, dificultando a manutenção.
 
 ### Solução
-1.  **Biblioteca de QR Code:** A biblioteca `html5-qrcode` foi adicionada ao projeto via CDN para fornecer a funcionalidade de scanner.
-2.  **UI do Scanner:**
-    - Uma nova tela (`#qr-scanner-screen`) foi criada para abrigar o leitor de vídeo da câmera.
-    - Um botão "Depositar Fantasmas" foi adicionado ao modal do inventário, que fica visível apenas quando há fantasmas para depositar.
-3.  **Lógica do Scanner:**
-    - Ao clicar em "Depositar", a função `startQrScanner` é chamada. Ela esconde as outras UIs e inicia a câmera para procurar por um QR Code.
-    - Uma função de callback `onScanSuccess` é executada quando um código é lido com sucesso.
-4.  **Validação e Depósito:**
-    - O texto do QR Code lido é validado contra um valor pré-definido (`GHOSTBUSTERS_CONTAINMENT_UNIT_01`).
-    - Se a validação for bem-sucedida, a função `depositGhosts` é chamada.
-    - `depositGhosts` limpa o array de inventário local, atualiza o Firebase para refletir o inventário vazio, e chama `generateGhost` para que a caça possa recomeçar.
-5.  **Fluxo do Usuário:** O ciclo agora está completo: Caçar -> Capturar -> Encher o inventário -> Ir para a unidade de contenção -> Escanear QR Code -> Esvaziar inventário -> Repetir.
+1.  **Refatoração do Código:** Como uma potencial solução para problemas de performance e para melhorar a organização, o código foi separado em três arquivos distintos:
+    - `index.html`: Agora contém apenas a estrutura HTML e os links para os outros arquivos.
+    - `style.css`: Contém todo o código CSS para a estilização da interface.
+    - `main.js`: Contém todo o código JavaScript que controla a lógica do jogo.
+2.  **Correção de Bug de AR (Depuração):** Para diagnosticar o travamento, a lógica de exibição da retícula de posicionamento em AR foi alterada. A condição que exigia que o jogador estivesse perto do fantasma (`canPlaceGhost`) foi removida temporariamente do loop de renderização (`onXRFrame`). Isso força a retícula a aparecer sempre que uma superfície for detectada, permitindo verificar se o sistema de AR em si está funcionando, independentemente do GPS.
+3.  **Correção do Favicon:** O link para o `favicon.ico` foi adicionado ao `<head>` do HTML.
+4.  **Consolidação:** Todas as funcionalidades desenvolvidas anteriormente (Inventário, QR Code, etc.) foram incluídas nesta nova estrutura de arquivos para garantir que o projeto esteja unificado e atualizado.
