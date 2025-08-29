@@ -18,11 +18,11 @@ body {
     right: 0;
     bottom: 0;
     z-index: 10;
-    pointer-events: none;
+    pointer-events: none; /* Permite cliques através de tudo por padrão */
 }
 
 .ui-element {
-    pointer-events: auto;
+    pointer-events: auto; /* Elementos com esta classe são clicáveis */
 }
 
 .ui-screen {
@@ -117,7 +117,8 @@ body {
 
 /* UI Principal do Jogo */
 #game-ui {
-    display: none;
+    /* Este container não deve receber cliques, apenas seus filhos com .ui-element */
+    pointer-events: none;
 }
 
 #game-logo {

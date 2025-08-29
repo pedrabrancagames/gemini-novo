@@ -403,13 +403,11 @@ AFRAME.registerComponent('game-manager', {
     },
 
     placeObject: function () {
-        alert("1. placeObject foi chamada.");
+        // alert("1. placeObject foi chamada.");
         if (!this.objectToPlace || this.placedObjects[this.objectToPlace] || !this.reticle.getAttribute('visible')) {
-            // alert("2. Condição de placeObject falhou. objectToPlace: " + this.objectToPlace + ", placed: " + this.placedObjects[this.objectToPlace] + ", reticle visible: " + this.reticle.getAttribute('visible'));
             return;
         }
         
-        // alert("3. Encontrando a entidade: " + this.objectToPlace);
         let entityToPlace;
         if (this.objectToPlace === 'ghost') {
             entityToPlace = this.ghostEntity;
@@ -418,17 +416,12 @@ AFRAME.registerComponent('game-manager', {
         }
 
         if (entityToPlace) {
-            // alert("4. Entidade encontrada. Aplicando atributos...");
             const pos = this.reticle.object3D.position;
             entityToPlace.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
             entityToPlace.setAttribute('visible', 'true');
             entityToPlace.setAttribute('scale', '0.5 0.5 0.5');
             this.placedObjects[this.objectToPlace] = true;
-            // alert("5. Atributos aplicados. Posição: " + `${pos.x} ${pos.y} ${pos.z}`);
-        } else {
-            // alert("6. ERRO: Nenhuma entidade encontrada para posicionar.");
         }
         this.reticle.setAttribute('visible', 'false');
-        // alert("7. Fim da função placeObject.");
     }
 });
