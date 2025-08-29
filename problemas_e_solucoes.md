@@ -2,13 +2,12 @@
 
 [...]
 
-## 29/08/2025 - Teste Definitivo: Substituindo o Modelo 3D por um Primitivo
+## 29/08/2025 - Depuração Avançada do Posicionamento AR
 
 ### Problema
-Mesmo com a lógica de posicionamento e escala corrigida, o fantasma continuava invisível na câmera AR. Isso isolou o problema ao próprio arquivo de modelo 3D (`ghost.glb`), que poderia estar corrompido, com problemas de material ou com seu ponto de origem deslocado.
+O bug mais crítico do projeto persistia: mesmo com a retícula de mira aparecendo, o objeto (fantasma ou cubo de teste) não era renderizado na cena ao ser posicionado. Os logs do console não indicavam nenhum erro, sugerindo um problema de lógica sutil ou de estado.
 
 ### Solução
-Para provar que toda a lógica de programação (proximidade, detecção de superfície, posicionamento, escala, visibilidade) estava correta, uma medida de depuração definitiva foi tomada:
-1.  **Substituição do Modelo:** A entidade `#ghost` no `index.html` foi alterada. A referência ao `gltf-model` foi removida e substituída por componentes de geometria e material padrão do A-Frame (`geometry="primitive: box; ..."` e `material="color: white;"`).
-2.  **Objetivo do Teste:** O objetivo é verificar se um objeto simples e garantidamente funcional (um cubo branco) aparece no lugar do fantasma. Se o cubo aparecer, confirma-se que o problema reside exclusivamente no arquivo `ghost.glb`, e não no código.
-3.  **Próximo Passo (Pós-teste):** Se o teste for bem-sucedido, a solução será recriar ou reexportar o arquivo `ghost.glb` para garantir que ele seja um asset válido e funcional.
+Para finalmente descobrir o ponto de falha, uma depuração manual e detalhada foi implementada.
+1.  **Rastreamento com Alertas:** A função `placeObject`, responsável por posicionar o objeto no mundo, foi preenchida com uma série de `alert()`s numerados. Cada alerta representava um passo lógico dentro da função (ex: "1. Função chamada", "2. Verificação de condição", "3. Entidade encontrada", etc.).
+2.  **Instrução ao Usuário:** O usuário foi instruído a realizar o teste e reportar o número do último alerta visível. Isso permitiria identificar exatamente qual linha de código estava falhando ou não estava sendo executada como esperado, mesmo sem um erro explícito no console.
