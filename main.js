@@ -83,8 +83,6 @@ AFRAME.registerComponent('game-manager', {
         this.locationButtons = document.querySelectorAll('.location-button');
         this.minimapElement = document.getElementById('minimap');
         this.distanceInfo = document.getElementById('distance-info');
-        this.captureButton = document.getElementById('capture-button');
-        this.captureProgress = document.getElementById('capture-progress');
         this.inventoryIconContainer = document.getElementById('inventory-icon-container');
         this.inventoryModal = document.getElementById('inventory-modal');
         this.closeInventoryButton = document.getElementById('close-inventory-button');
@@ -94,7 +92,8 @@ AFRAME.registerComponent('game-manager', {
         this.depositButton = document.getElementById('deposit-button');
         this.closeScannerButton = document.getElementById('close-scanner-button');
         this.reticle = document.getElementById('reticle');
-        this.ghostEntity = document.getElementById('ghost');
+        this.ghostComumEntity = document.getElementById('ghost-comum');
+        this.ghostForteEntity = document.getElementById('ghost-forte');
         this.ecto1Entity = document.getElementById('ecto-1');
         this.protonBeamSound = document.getElementById('proton-beam-sound');
         this.ghostCaptureSound = document.getElementById('ghost-capture-sound');
@@ -139,6 +138,7 @@ AFRAME.registerComponent('game-manager', {
         this.protonPackIcon.addEventListener('mouseleave', this.cancelCapture);
         this.protonPackIcon.addEventListener('touchstart', this.startCapture);
         this.protonPackIcon.addEventListener('touchend', this.cancelCapture);
+        this.protonPackIcon.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); });
         this.el.sceneEl.addEventListener('enter-vr', this.initGame);
     },
 

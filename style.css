@@ -141,7 +141,7 @@ body {
 }
 
 #inventory-icon {
-    width: 70px;
+    width: 90px; /* Aumentado */
 }
 
 #inventory-badge {
@@ -165,17 +165,18 @@ body {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 90px;
+    width: 110px; /* Aumentado */
     z-index: 15;
     pointer-events: auto; /* Agora é clicável */
 }
 
 #proton-pack-progress-bar {
     position: fixed;
-    bottom: 20px;
-    right: 120px; /* Ajustado para a lateral direita */
+    top: 50%; /* Centraliza verticalmente */
+    transform: translateY(-50%); /* Ajusta para o centro exato */
+    right: 10px; /* Mais próximo da borda */
     width: 10px; /* Vertical */
-    height: 90px; /* Altura do ícone */
+    height: 110px; /* Altura do ícone do proton pack */
     background-color: rgba(0, 0, 0, 0.5);
     border: 1px solid #92F428;
     border-radius: 5px;
@@ -188,6 +189,9 @@ body {
     height: 0%; /* Começa vazio na vertical */
     background-color: #92F428;
     transition: height 0.1s linear; /* Transição na altura */
+    position: absolute; /* Para preencher de baixo para cima */
+    bottom: 0; /* Preenche de baixo para cima */
+    left: 0;
 }
 
 #capture-button {
