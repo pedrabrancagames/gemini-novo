@@ -98,6 +98,9 @@ AFRAME.registerComponent('game-manager', {
         this.ecto1Entity = document.getElementById('ecto-1');
         this.protonBeamSound = document.getElementById('proton-beam-sound');
         this.captureSuccessSound = document.getElementById('capture-success-sound');
+        this.protonPackIcon = document.getElementById('proton-pack-icon');
+        this.protonPackProgressBar = document.getElementById('proton-pack-progress-bar');
+        this.protonPackProgressFill = document.getElementById('proton-pack-progress-fill');
     },
 
     initializeApp: function () {
@@ -130,13 +133,12 @@ AFRAME.registerComponent('game-manager', {
         this.closeInventoryButton.addEventListener('click', () => this.inventoryModal.classList.add('hidden'));
         this.depositButton.addEventListener('click', this.startQrScanner);
         this.closeScannerButton.addEventListener('click', this.stopQrScanner);
-        this.captureButton.addEventListener('mousedown', this.startCapture);
-        this.captureButton.addEventListener('mouseup', this.cancelCapture);
-        this.captureButton.addEventListener('mouseleave', this.cancelCapture);
-        this.captureButton.addEventListener('touchstart', this.startCapture);
-        this.captureButton.addEventListener('touchend', this.cancelCapture);
+        this.protonPackIcon.addEventListener('mousedown', this.startCapture);
+        this.protonPackIcon.addEventListener('mouseup', this.cancelCapture);
+        this.protonPackIcon.addEventListener('mouseleave', this.cancelCapture);
+        this.protonPackIcon.addEventListener('touchstart', this.startCapture);
+        this.protonPackIcon.addEventListener('touchend', this.cancelCapture);
         this.el.sceneEl.addEventListener('enter-vr', this.initGame);
-        // this.el.sceneEl.addEventListener('mousedown', this.placeObject); // Removido para posicionamento automático
     },
 
     saveUserToDatabase: function (user) {
@@ -326,10 +328,11 @@ AFRAME.registerComponent('game-manager', {
         let startTime = Date.now();
 
         const duration = this.ghostData.captureDuration;
+        this.protonPackProgressBar.style.display = 'block';
         this.progressInterval = setInterval(() => {
             const elapsedTime = Date.now() - startTime;
             const progress = Math.min(elapsedTime / duration, 1);
-            this.captureProgress.style.transform = `translateY(${100 - progress * 100}%)`;
+            this.protonPackProgressFill.style.width = `${progress * 100}%`;
         }, 100);
 
         this.captureTimer = setTimeout(() => {
@@ -344,7 +347,8 @@ AFRAME.registerComponent('game-manager', {
         this.protonBeamSound.currentTime = 0;
         clearTimeout(this.captureTimer);
         clearInterval(this.progressInterval);
-        this.captureProgress.style.transform = 'translateY(100%)';
+        this.protonPackProgressBar.style.display = 'none';
+        this.protonPackProgressFill.style.width = '0%';
     },
 
     ghostCaptured: function () {
@@ -393,8 +397,10 @@ AFRAME.registerComponent('game-manager', {
             this.reticle.object3D.matrix.fromArray(pose.transform.matrix);
             this.reticle.object3D.matrix.decompose(this.reticle.object3D.position, this.reticle.object3D.quaternion, this.reticle.object3D.scale);
             
-            // Tenta posicionar o objeto automaticamente assim que uma superfície for encontrada
-            this.placeObject();
+            // Posicionamento automático
+            if (this.objectToPlace && !this.placedObjects[this.objectToPlace]) {
+                this.placeObject();
+            }
         } else {
             this.reticle.setAttribute('visible', false);
         }

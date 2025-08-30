@@ -2,13 +2,23 @@
 
 [...]
 
-## 29/08/2025 - Correção Final do Bug de Evento de Clique (Tentativa 3)
+## 29/08/2025 - Implementação de Variedade de Fantasmas e Nova Captura
 
 ### Problema
-O bug mais persistente do projeto: o clique/toque na tela para posicionar um objeto na cena AR não era registrado, mesmo após múltiplas tentativas de correção de eventos e da estrutura da UI. O problema parecia ser uma incompatibilidade fundamental ou um bug no handler de eventos do A-Frame/WebXR no ambiente de teste.
+O jogo precisava de mais profundidade e desafio. Além disso, o método de captura precisava ser alterado para usar o ícone do Proton Pack, e o posicionamento do fantasma em AR precisava ser automático.
 
 ### Solução
-O problema foi identificado como uma idiossincrasia do A-Frame ou do navegador mobile em como ele processa eventos de toque em uma sessão de WebXR.
-1.  **Diagnóstico:** O evento sintético `click` não estava sendo disparado de forma confiável na cena AR.
-2.  **Correção (JavaScript):** A solução foi substituir o listener de evento. Em vez de `addEventListener('click', ...)` na cena, foi utilizado `addEventListener('mousedown', ...)`. O evento `mousedown` é um evento de nível mais baixo que corresponde ao momento exato em que o dedo toca a tela, sendo mais robusto e confiável em ambientes 3D/AR do que o `click`, que depende de um ciclo de `touchstart` e `touchend`.
-3.  **Limpeza:** Os `alert`s de depuração foram removidos do código, pois a correção do evento tornou-os desnecessários.
+1.  **Variedade de Fantasmas:**
+    - A função `generateGhost` agora cria fantasmas comuns ou fortes (25% de chance).
+    - Fantasmas fortes têm mais pontos (25 vs 10) e maior duração de captura (8s vs 5s).
+    - Ícones diferentes são usados no minimapa para diferenciar os tipos de fantasmas (logo para comum, PKE meter para forte).
+2.  **Captura pelo Proton Pack:**
+    - O botão de captura central foi removido do HTML.
+    - O ícone do Proton Pack (`#proton-pack-icon`) agora é o elemento clicável para iniciar a captura.
+    - Uma nova barra de progresso (`#proton-pack-progress-bar`) foi adicionada acima do ícone do Proton Pack para feedback visual durante a captura.
+3.  **Posicionamento Automático:**
+    - A lógica de posicionamento do objeto (`placeObject`) foi movida para dentro do loop `tick`.
+    - Assim que a retícula encontra uma superfície, o objeto (`ghost` ou `ecto1`) é posicionado automaticamente, sem a necessidade de um clique adicional.
+4.  **Correção de Escala:** A escala do objeto posicionado foi ajustada para `0.5 0.5 0.5` para garantir visibilidade.
+
+Com estas alterações, o jogo agora possui um ciclo de gameplay mais dinâmico e uma interação de captura mais intuitiva.

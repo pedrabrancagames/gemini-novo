@@ -23,7 +23,7 @@ body {
 }
 
 .ui-element {
-    pointer-events: auto; /* Apenas elementos com esta classe são clicáveis */
+    pointer-events: auto; /* Elementos com esta classe são clicáveis */
 }
 
 .ui-screen {
@@ -167,28 +167,32 @@ body {
     right: 20px;
     width: 90px;
     z-index: 15;
+    pointer-events: auto; /* Agora é clicável */
+}
+
+#proton-pack-progress-bar {
+    position: fixed;
+    bottom: 115px; /* Acima do ícone */
+    right: 20px;
+    width: 90px;
+    height: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid #92F428;
+    border-radius: 5px;
+    overflow: hidden;
+    display: none; /* Escondido por padrão */
+    z-index: 16; /* Acima do ícone */
+}
+#proton-pack-progress-fill {
+    width: 0%;
+    height: 100%;
+    background-color: #92F428;
+    transition: width 0.1s linear;
 }
 
 #capture-button {
-    position: fixed;
-    bottom: 25px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 70px;
-    height: 70px;
-    background-color: rgba(146, 244, 40, 0.3);
-    border: 3px solid #92F428;
-    border-radius: 50%;
-    z-index: 15;
-    cursor: pointer;
-    overflow: hidden;
-}
-#capture-progress {
-    width: 100%;
-    height: 100%;
-    background-color: #92F428;
-    transform: translateY(100%);
-    transition: transform 0.1s linear;
+    /* Este botão foi removido do HTML */
+    display: none;
 }
 
 #minimap {
