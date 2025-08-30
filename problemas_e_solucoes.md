@@ -53,21 +53,13 @@ O problema era causado pelo uso da função `alert()`, que pausa toda a execuç�
 3.  **Estilização (`style.css`):** Adicionadas regras de CSS para formatar a janela, garantindo que ela se sobreponha à UI do jogo sem bloquear a renderização.
 4.  **Atualização do Script (`main.js`):** A lógica foi refatorada para substituir todas as chamadas de `alert()` pela nova função `showNotification()`, que exibe a mensagem na janela customizada sem pausar o jogo. Isso garante que a câmera continue funcionando após a exibição das mensagens.
 
-## 30/08/2025 - Correção de Conflito de Câmera entre AR e Scanner de QR
+## 30/08/2025 - Correção Final do Conflito de Câmera
 
 ### Problema
-Ao tentar abrir o scanner de QR Code para depositar fantasmas, o scanner falhava e a câmera do modo AR quebrava (tela branca). O scanner só funcionava numa segunda tentativa, após a câmera AR já ter parado de funcionar. Isso indicou um conflito pelo controle do hardware da câmera.
+O scanner de QR Code falhava ao ser iniciado, mesmo após tentativas de correção. O log do console revelou o erro `TypeError: this.el.sceneEl.exitAR is not a function`.
 
 ### Solução
-Foi implementado um gerenciamento explícito do controle da câmera para evitar que o modo AR (WebXR) e a biblioteca de scanner (`Html5Qrcode`) tentassem usar a câmera simultaneamente.
+A causa raiz de todo o conflito de câmera era uma chamada de função incorreta. A biblioteca A-Frame não possui um método `exitAR()`.
 
-1.  **Liberar Câmera Antes de Escanear:** A função `startQrScanner` foi modificada para primeiro sair do modo AR (`exitAR()`) e aguardar a liberação da câmera antes de tentar iniciar o scanner de QR Code.
-2.  **Retornar ao Fluxo Padrão:** A função `stopQrScanner` foi ajustada para, após fechar o scanner, levar o usuário de volta à tela de seleção de local. Isso força o usuário a re-entrar no modo AR através do botão "Iniciar Caça", garantindo que a câmera seja re-inicializada de forma limpa e sem conflitos.
-
-## 30/08/2025 - Correção de Race Condition na Liberação da Câmera
-
-### Problema
-A solução anterior para o conflito de câmera gerou uma "race condition". O scanner de QR era iniciado imediatamente após a conclusão do comando `exitAR()`, mas o navegador ainda não havia liberado completamente o recurso da câmera, resultando em um erro de permissão.
-
-### Solução
-Foi adicionado um pequeno atraso (`setTimeout` de 200ms) na função `startQrScanner`. Esse atraso ocorre após a saída do modo AR e antes da inicialização do scanner. A pausa, embora imperceptível para o usuário, dá ao navegador tempo suficiente para liberar totalmente a câmera, resolvendo a condição de corrida e permitindo que o scanner seja iniciado com sucesso na primeira tentativa.
+1.  **Correção da Chamada da Função:** A chamada incorreta `this.el.sceneEl.exitAR()` foi substituída pela função correta da A-Frame, `this.el.sceneEl.exitVR()`, que é usada para encerrar tanto sessões de VR quanto de AR.
+2.  **Manutenção do Atraso:** O `setTimeout` de 200ms foi mantido por precaução, garantindo que o navegador tenha tempo de liberar a câmera após a chamada correta de `exitVR()` e antes de o scanner de QR ser iniciado. Isso cria uma solução robusta para o gerenciamento do controle da câmera.

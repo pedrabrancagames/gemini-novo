@@ -228,7 +228,8 @@ AFRAME.registerComponent('game-manager', {
 
         if (this.el.sceneEl.is('ar-mode')) {
             try {
-                await this.el.sceneEl.exitAR();
+                // exitVR() é a função correta para sair de sessões AR e VR.
+                await this.el.sceneEl.exitVR();
             } catch (e) {
                 console.error("Falha ao sair do modo AR.", e);
             }
