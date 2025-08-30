@@ -40,17 +40,23 @@
             geometry="primitive: ring; radius-inner: 0.04; radius-outer: 0.06;"
             material="color: #92F428; shader: flat;"></a-entity>
         
-        <!-- Fantasmas com animação via componente, aguardando evento para iniciar -->
-        <a-entity id="ghost-comum" visible="false" 
-            animation__rotation="property: rotation; to: 0 360 0; dur: 12000; loop: true; easing: linear; startEvents: start-animation">
-            <a-entity gltf-model="#ghost-model" position="0.6 0 0"
-                animation__bob="property: position; to: 0.6 0.4 0; dur: 2500; dir: alternate; loop: true; easing: easeInOutQuad; startEvents: start-animation">
+        <!-- Fantasmas com animação aninhada para órbita e flutuação corretas -->
+        <a-entity id="ghost-comum" visible="false">
+            <!-- 1. Orbitador: Gira em torno do seu eixo (o ponto central) -->
+            <a-entity animation__rotation="property: rotation; to: 0 360 0; dur: 8000; loop: true; easing: linear; startEvents: start-animation;">
+                <!-- 2. Modelo: Afastado 1m para criar a órbita e com animação de flutuação (bob) -->
+                <a-entity gltf-model="#ghost-model" position="1 0.3 0"
+                    animation__bob="property: position; from: 1 0.3 0; to: 1 0.8 0; dur: 3000; dir: alternate; loop: true; easing: easeInOutQuad; startEvents: start-animation;">
+                </a-entity>
             </a-entity>
         </a-entity>
-        <a-entity id="ghost-forte" visible="false"
-            animation__rotation="property: rotation; to: 0 -360 0; dur: 10000; loop: true; easing: linear; startEvents: start-animation">
-            <a-entity gltf-model="#geleia-model" position="0.8 0 0"
-                animation__bob="property: position; to: 0.8 0.5 0; dur: 2000; dir: alternate; loop: true; easing: easeInOutQuad; startEvents: start-animation">
+        <a-entity id="ghost-forte" visible="false">
+            <!-- 1. Orbitador: Gira mais rápido e na direção oposta -->
+            <a-entity animation__rotation="property: rotation; to: 0 -360 0; dur: 6000; loop: true; easing: linear; startEvents: start-animation;">
+                <!-- 2. Modelo: Círculo um pouco maior e flutuação mais pronunciada -->
+                <a-entity gltf-model="#geleia-model" position="1.2 0.4 0"
+                    animation__bob="property: position; from: 1.2 0.4 0; to: 1.2 1.0 0; dur: 2500; dir: alternate; loop: true; easing: easeInOutQuad; startEvents: start-animation;">
+                </a-entity>
             </a-entity>
         </a-entity>
         

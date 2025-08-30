@@ -74,14 +74,16 @@ O erro era causado pela tentativa de reinicializar a biblioteca de mapa (Leaflet
 
 1.  **Limpeza do Mapa Anterior:** A função `initMap` foi modificada para, antes de qualquer outra ação, verificar se uma instância do mapa (`this.map`) já existe. Se existir, o método `this.map.remove()` é chamado para destruir a instância antiga e limpar o container, garantindo que a nova inicialização ocorra em um estado limpo.
 
-## 30/08/2025 - Correção da Animação do Fantasma
+## 30/08/2025 - Correção Final da Animação do Fantasma
 
 ### Problema
-Os fantasmas apareciam em cena, mas permaneciam estáticos, sem a animação de movimento que havia sido implementada.
+As tentativas anteriores de animar o fantasma resultaram em um movimento incorreto (girando em seu próprio eixo) ou nenhum movimento. A composição de uma órbita circular com uma flutuação vertical não estava funcionando.
 
 ### Solução
-A causa era uma abordagem de animação declarativa (`<a-animation>`) que não estava sendo ativada de forma confiável. A solução foi mudar para um sistema de animação mais explícito e robusto.
+A solução foi re-arquitetar a entidade do fantasma no `index.html` usando uma estrutura aninhada de 3 níveis, que separa as responsabilidades de cada movimento.
 
-1.  **Refatoração para Componente `animation`:** As tags `<a-animation>` foram substituídas pela sintaxe de componente `animation` do A-Frame, que é mais moderna.
-2.  **Início por Evento:** As animações foram configuradas para não iniciarem automaticamente, mas sim ao receberem um evento customizado: `start-animation`.
-3.  **Emissão do Evento:** A função `placeObject` no `main.js` foi modificada para, logo após tornar o fantasma visível, emitir o evento `start-animation` para a entidade do fantasma. Isso garante que a animação seja ativada no momento exato em que o fantasma é posicionado no mundo.
+1.  **Entidade Âncora (`#ghost-comum`/`#ghost-forte`):** A entidade principal, que é posicionada no mundo pelo script `main.js`. Ela serve como o ponto central da órbita.
+2.  **Entidade Orbitadora:** Uma entidade filha da âncora, responsável unicamente pela animação de `rotation` para criar o movimento circular.
+3.  **Entidade do Modelo:** Uma entidade neta, filha da orbitadora. Ela contém o `gltf-model` e é deslocada do centro (ex: `position="1 0.3 0"`) para definir o raio da órbita. É nesta entidade que a animação de `position` (flutuação para cima e para baixo) é aplicada.
+
+Essa estrutura garante que a rotação da entidade orbitadora mova a entidade do modelo em um círculo perfeito, enquanto a animação de posição da própria entidade do modelo a faz flutuar independentemente, resultando no efeito desejado.
