@@ -59,6 +59,8 @@ AFRAME.registerComponent('game-manager', {
         this.onScanSuccess = this.onScanSuccess.bind(this);
         this.startQrScanner = this.startQrScanner.bind(this);
         this.stopQrScanner = this.stopQrScanner.bind(this);
+        this.showNotification = this.showNotification.bind(this);
+        this.hideNotification = this.hideNotification.bind(this);
         this.initGame = this.initGame.bind(this);
         this.initMap = this.initMap.bind(this);
         this.showEcto1OnMap = this.showEcto1OnMap.bind(this);
@@ -102,6 +104,9 @@ AFRAME.registerComponent('game-manager', {
         this.protonPackIcon = document.getElementById('proton-pack-icon');
         this.protonPackProgressBar = document.getElementById('proton-pack-progress-bar');
         this.protonPackProgressFill = document.getElementById('proton-pack-progress-fill');
+        this.notificationModal = document.getElementById('notification-modal');
+        this.notificationMessage = document.getElementById('notification-message');
+        this.notificationCloseButton = document.getElementById('notification-close-button');
     },
 
     initializeApp: function () {
@@ -140,7 +145,17 @@ AFRAME.registerComponent('game-manager', {
         this.protonPackIcon.addEventListener('touchstart', this.startCapture);
         this.protonPackIcon.addEventListener('touchend', this.cancelCapture);
         this.protonPackIcon.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); });
+        this.notificationCloseButton.addEventListener('click', this.hideNotification);
         this.el.sceneEl.addEventListener('enter-vr', this.initGame);
+    },
+
+    showNotification: function (message) {
+        this.notificationMessage.textContent = message;
+        this.notificationModal.classList.remove('hidden');
+    },
+
+    hideNotification: function () {
+        this.notificationModal.classList.add('hidden');
     },
 
     saveUserToDatabase: function (user) {
@@ -375,6 +390,8 @@ AFRAME.registerComponent('game-manager', {
         this.userStats.captures += 1;
         this.updateInventoryUI();
 
+        let captureMessage = `Fantasma capturado! Você agora tem ${this.userStats.points} pontos.`;
+
         if (this.inventory.length === this.INVENTORY_LIMIT) {
             this.inventoryFullSound.play(); // Som de inventário cheio
         }
@@ -382,13 +399,13 @@ AFRAME.registerComponent('game-manager', {
         if (this.userStats.captures >= this.ECTO1_UNLOCK_COUNT && !this.userStats.ecto1Unlocked) {
             this.userStats.ecto1Unlocked = true;
             this.showEcto1OnMap();
-            alert("Você ouve um barulho de motor familiar... Algo especial apareceu no mapa!");
+            captureMessage += "\n\nVocê ouve um barulho de motor familiar... Algo especial apareceu no mapa!";
         }
 
         const userRef = ref(this.database, 'users/' + this.currentUser.uid);
         update(userRef, { points: this.userStats.points, captures: this.userStats.captures, inventory: this.inventory, ecto1Unlocked: this.userStats.ecto1Unlocked });
 
-        alert(`Fantasma capturado! Você agora tem ${this.userStats.points} pontos.`);
+        this.showNotification(captureMessage);
         this.generateGhost();
     },
 

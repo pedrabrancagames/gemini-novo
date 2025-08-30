@@ -39,3 +39,16 @@ A causa raiz era um erro de referência no `main.js` que não determinava corret
     - As funções `placeObject` (que posiciona o fantasma em AR) e `ghostCaptured` (que o remove após a captura) foram atualizadas para usar a nova variável `activeGhostEntity`, garantindo que o modelo 3D correto seja exibido e, posteriormente, ocultado.
 
 Essa correção restaurou o ciclo de gameplay, garantindo que a renderização do fantasma e a mecânica de captura voltem a funcionar como esperado.
+
+## 30/08/2025 - Correção de Bug de Tela Branca Pós-Captura
+
+### Problema
+Após a captura de um fantasma, ao fechar a mensagem de confirmação (`alert`), a imagem da câmera em AR ficava completamente branca, interrompendo a jogabilidade. Os elementos de UI continuavam visíveis, mas o ambiente real não era mais renderizado.
+
+### Solução
+O problema era causado pelo uso da função `alert()`, que pausa toda a execução de scripts da página, incluindo o loop de renderização da câmera AR. Ao ser dispensado, o contexto de renderização do WebXR era perdido.
+
+1.  **Criação de Notificação Customizada:** Foi implementado um modal de notificação não-bloqueante usando HTML, CSS e JavaScript.
+2.  **Alteração do HTML (`index.html`):** Adicionada a estrutura para a janela de notificação.
+3.  **Estilização (`style.css`):** Adicionadas regras de CSS para formatar a janela, garantindo que ela se sobreponha à UI do jogo sem bloquear a renderização.
+4.  **Atualização do Script (`main.js`):** A lógica foi refatorada para substituir todas as chamadas de `alert()` pela nova função `showNotification()`, que exibe a mensagem na janela customizada sem pausar o jogo. Isso garante que a câmera continue funcionando após a exibição das mensagens.

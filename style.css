@@ -297,6 +297,37 @@ body {
     cursor: pointer;
 }
 
+/* Janela de Notificação */
+#notification-modal {
+    z-index: 200; /* Garante que fique sobre todos os outros elementos */
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+#notification-content {
+    width: 90%;
+    max-width: 400px;
+    background: #1a1a1a;
+    border: 2px solid #92F428;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 0 20px rgba(146, 244, 40, 0.5);
+    text-align: center;
+}
+
+#notification-message {
+    margin: 0;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+    line-height: 1.5;
+    white-space: pre-wrap; /* Para preservar quebras de linha */
+}
+
+#notification-close-button {
+    display: inline-block; /* Para que o botão apareça */
+    color: #000;
+    background-color: #92F428;
+}
+
 .a-enter-vr-button,
 .a-enter-ar-button {
     display: none !important;
