@@ -94,6 +94,7 @@ AFRAME.registerComponent('game-manager', {
         this.reticle = document.getElementById('reticle');
         this.ghostComumEntity = document.getElementById('ghost-comum');
         this.ghostForteEntity = document.getElementById('ghost-forte');
+        this.activeGhostEntity = null; // Novo: para rastrear o fantasma ativo
         this.ecto1Entity = document.getElementById('ecto-1');
         this.protonBeamSound = document.getElementById('proton-beam-sound');
         this.ghostCaptureSound = document.getElementById('ghost-capture-sound');
@@ -290,35 +291,43 @@ AFRAME.registerComponent('game-manager', {
 
     checkProximity: function (userLat, userLon) {
         const R = 6371e3;
-        this.objectToPlace = null;
-        this.distanceInfo.style.color = "#92F428";
+        let isNearObject = false;
 
-        if (this.inventory.length < this.INVENTORY_LIMIT && this.ghostData) {
-            const dPhiGhost = (this.ghostData.lat-userLat) * Math.PI/180;
-            const dLambdaGhost = (this.ghostData.lon-userLon) * Math.PI/180;
-            const aGhost = Math.sin(dPhiGhost/2) * Math.sin(dPhiGhost/2) + Math.cos(userLat * Math.PI/180) * Math.cos(this.ghostData.lat * Math.PI/180) * Math.sin(dLambdaGhost/2) * Math.sin(dLambdaGhost/2);
-            const distanceGhost = R * (2 * Math.atan2(Math.sqrt(aGhost), Math.sqrt(1-aGhost)));
-            this.distanceInfo.innerText = `Fantasma: ${distanceGhost.toFixed(0)}m`;
+        if (this.inventory.length < this.INVENTORY_LIMIT && this.ghostData && this.ghostData.lat) {
+            const dPhiGhost = (this.ghostData.lat - userLat) * Math.PI / 180;
+            const dLambdaGhost = (this.ghostData.lon - userLon) * Math.PI / 180;
+            const aGhost = Math.sin(dPhiGhost / 2) * Math.sin(dPhiGhost / 2) + Math.cos(userLat * Math.PI / 180) * Math.cos(this.ghostData.lat * Math.PI / 180) * Math.sin(dLambdaGhost / 2) * Math.sin(dLambdaGhost / 2);
+            const distanceGhost = R * (2 * Math.atan2(Math.sqrt(aGhost), Math.sqrt(1 - aGhost)));
 
             if (distanceGhost <= this.CAPTURE_RADIUS) {
                 this.objectToPlace = 'ghost';
+                this.activeGhostEntity = this.ghostData.type === 'Fantasma Forte' ? this.ghostForteEntity : this.ghostComumEntity;
                 this.distanceInfo.innerText = `FANTASMA ${this.ghostData.type.toUpperCase()} PRÓXIMO!`;
                 this.distanceInfo.style.color = "#ff0000";
-                return;
+                isNearObject = true;
+            } else {
+                this.distanceInfo.innerText = `Fantasma: ${distanceGhost.toFixed(0)}m`;
+                this.distanceInfo.style.color = "#92F428";
             }
         }
 
-        if (this.userStats.ecto1Unlocked) {
-            const dPhiEcto = (this.ECTO1_POSITION.lat - userLat) * Math.PI/180;
-            const dLambdaEcto = (this.ECTO1_POSITION.lon - userLon) * Math.PI/180;
-            const aEcto = Math.sin(dPhiEcto/2) * Math.sin(dPhiEcto/2) + Math.cos(userLat * Math.PI/180) * Math.cos(this.ECTO1_POSITION.lat * Math.PI/180) * Math.sin(dLambdaEcto/2) * Math.sin(dLambdaEcto/2);
-            const distanceEcto = R * (2 * Math.atan2(Math.sqrt(aEcto), Math.sqrt(1-aEcto)));
-            
+        if (this.userStats.ecto1Unlocked && !isNearObject) {
+            const dPhiEcto = (this.ECTO1_POSITION.lat - userLat) * Math.PI / 180;
+            const dLambdaEcto = (this.ECTO1_POSITION.lon - userLon) * Math.PI / 180;
+            const aEcto = Math.sin(dPhiEcto / 2) * Math.sin(dPhiEcto / 2) + Math.cos(userLat * Math.PI / 180) * Math.cos(this.ECTO1_POSITION.lat * Math.PI / 180) * Math.sin(dLambdaEcto / 2) * Math.sin(dLambdaEcto / 2);
+            const distanceEcto = R * (2 * Math.atan2(Math.sqrt(aEcto), Math.sqrt(1 - aEcto)));
+
             if (distanceEcto <= this.CAPTURE_RADIUS) {
                 this.objectToPlace = 'ecto1';
                 this.distanceInfo.innerText = "ECTO-1 PRÓXIMO! OLHE AO REDOR!";
                 this.distanceInfo.style.color = "#00aaff";
+                isNearObject = true;
             }
+        }
+
+        if (!isNearObject) {
+            this.objectToPlace = null;
+            this.activeGhostEntity = null;
         }
     },
 
@@ -355,7 +364,9 @@ AFRAME.registerComponent('game-manager', {
     ghostCaptured: function () {
         this.cancelCapture();
         this.ghostCaptureSound.play(); // Som de captura bem-sucedida
-        this.ghostEntity.setAttribute('visible', false);
+        if (this.activeGhostEntity) {
+            this.activeGhostEntity.setAttribute('visible', false);
+        }
         this.placedObjects.ghost = false;
         this.objectToPlace = null;
 
@@ -413,10 +424,10 @@ AFRAME.registerComponent('game-manager', {
 
     placeObject: function () {
         if (!this.objectToPlace || this.placedObjects[this.objectToPlace] || !this.reticle.getAttribute('visible')) return;
-        
+
         let entityToPlace;
         if (this.objectToPlace === 'ghost') {
-            entityToPlace = this.ghostEntity;
+            entityToPlace = this.activeGhostEntity;
         } else if (this.objectToPlace === 'ecto1') {
             entityToPlace = this.ecto1Entity;
         }
@@ -427,7 +438,7 @@ AFRAME.registerComponent('game-manager', {
             entityToPlace.setAttribute('visible', 'true');
             entityToPlace.setAttribute('scale', '0.5 0.5 0.5');
             this.placedObjects[this.objectToPlace] = true;
+            this.reticle.setAttribute('visible', 'false');
         }
-        this.reticle.setAttribute('visible', 'false');
     }
 });

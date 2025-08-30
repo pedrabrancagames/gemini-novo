@@ -22,3 +22,20 @@ O jogo precisava de mais profundidade e desafio. Além disso, o método de captu
 4.  **Correção de Escala:** A escala do objeto posicionado foi ajustada para `0.5 0.5 0.5` para garantir visibilidade.
 
 Com estas alterações, o jogo agora possui um ciclo de gameplay mais dinâmico e uma interação de captura mais intuitiva.
+
+## 30/08/2025 - Correção de Bug Crítico na Renderização e Captura
+
+### Problema
+Após os testes, foi identificado um bug crítico: o fantasma não aparecia em modo AR quando o jogador se aproximava da sua localização. Como consequência, a mecânica de captura via Proton Pack também não funcionava, pois dependia de um fantasma visível na cena.
+
+### Solução
+A causa raiz era um erro de referência no `main.js` que não determinava corretamente qual entidade de fantasma (comum ou forte) deveria ser renderizada.
+
+1.  **Gestão de Estado do Fantasma Ativo:**
+    - Foi introduzida uma nova variável `this.activeGhostEntity` para armazenar a referência à entidade do fantasma que está atualmente próximo ao jogador.
+2.  **Refatoração da Lógica de Proximidade:**
+    - A função `checkProximity` foi corrigida para, além de detectar a proximidade, definir qual fantasma (`ghostComumEntity` ou `ghostForteEntity`) deve ser o `activeGhostEntity`.
+3.  **Correção das Funções de Jogo:**
+    - As funções `placeObject` (que posiciona o fantasma em AR) e `ghostCaptured` (que o remove após a captura) foram atualizadas para usar a nova variável `activeGhostEntity`, garantindo que o modelo 3D correto seja exibido e, posteriormente, ocultado.
+
+Essa correção restaurou o ciclo de gameplay, garantindo que a renderização do fantasma e a mecânica de captura voltem a funcionar como esperado.
