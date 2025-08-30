@@ -397,6 +397,25 @@ AFRAME.registerComponent('game-manager', {
         this.isCapturing = true;
         this.protonBeamSound.play();
         this.protonBeamEntity.setAttribute('visible', true); // Mostra o feixe de prótons
+
+        // Define os pontos de início e fim do feixe em coordenadas relativas à câmera
+        const startPoint = new THREE.Vector3(0.15, -0.4, -0.5); // Ponta da pistola
+        const endPoint = new THREE.Vector3(0, 0, -10); // Centro da tela, 10m de distância
+
+        // Calcula o vetor do feixe, seu comprimento e ponto médio
+        const beamVector = new THREE.Vector3().subVectors(endPoint, startPoint);
+        const beamLength = beamVector.length();
+        const beamMidpoint = new THREE.Vector3().addVectors(startPoint, endPoint).divideScalar(2);
+
+        // Define a altura e posição do cilindro
+        this.protonBeamEntity.setAttribute('geometry', { height: beamLength });
+        this.protonBeamEntity.object3D.position.copy(beamMidpoint);
+
+        // Calcula a rotação para alinhar o cilindro (que por padrão aponta para cima) com o vetor do feixe
+        const cylinderUp = new THREE.Vector3(0, 1, 0); // Eixo Y padrão do cilindro
+        const quaternion = new THREE.Quaternion().setFromUnitVectors(cylinderUp, beamVector.normalize());
+        this.protonBeamEntity.object3D.quaternion.copy(quaternion);
+
         this.protonPackProgressBar.style.display = 'block';
         let startTime = Date.now();
 
