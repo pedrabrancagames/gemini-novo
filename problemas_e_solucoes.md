@@ -122,3 +122,15 @@ Foi ajustada a origem e a espessura do feixe para melhorar a imersão e a fideli
 
 1.  **Mudança para Cilindro:** O componente `line` foi substituído por um `a-cylinder` no `index.html` para permitir o controle da espessura.
 2.  **Ajuste de Posição e Rotação:** A `position` e `rotation` do cilindro foram ajustadas para que o feixe pareça sair da ponta esquerda da imagem do Proton Pack e aponte corretamente para o centro da tela.
+
+## 30/08/2025 - Melhoria: Refinamento da Origem do Feixe de Prótons (Volta para Linha)
+
+### Problema
+O feixe de prótons, após a tentativa com o cilindro, estava saindo do meio da parte inferior da tela e seguindo verticalmente para o centro, não da ponta da pistola. O usuário desejava que o feixe saísse da ponta superior esquerda da imagem do Proton Pack e fosse para o centro da tela.
+
+### Solução
+Para garantir a precisão da origem e do alvo do feixe, o componente `line` foi reintroduzido, pois permite um controle mais direto dos pontos de início e fim.
+
+1.  **Reintrodução do Componente `line`:** A entidade `proton-beam-entity` no `index.html` foi alterada de volta para usar o componente `line`.
+2.  **Ajuste Preciso dos Pontos:** Os pontos `start` e `end` da linha foram ajustados para `start: 0.4 -0.4 -0.5; end: 0 0 -10;`. Isso visa posicionar visualmente a origem do feixe na ponta superior esquerda da imagem do Proton Pack e direcioná-lo para o centro da tela.
+3.  **Compensação da Espessura:** Embora o componente `line` não suporte espessura direta, a cor foi mantida vibrante e a opacidade alta para compensar visualmente.
