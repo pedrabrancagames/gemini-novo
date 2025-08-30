@@ -184,3 +184,13 @@ O feixe de prótons ainda estava mais grosso do que o desejado, necessitando de 
 A espessura do feixe foi ajustada para um valor ainda menor.
 
 1.  **Ajuste de Raio:** O raio (`radius`) do cilindro que representa o feixe foi alterado de `0.015` para `0.012` no `index.html`.
+
+## 30/08/2025 - Melhoria: Posicionar Proton Pack e Barra de Progresso na Borda da Tela
+
+### Problema
+A imagem do Proton Pack e sua barra de progresso não estavam encostando nas bordas da tela, deixando um espaço indesejado.
+
+### Solução
+A posição dos elementos foi ajustada para que encostem nos limites da tela.
+
+1.  **Ajuste de Posição:** As propriedades `bottom` e `right` do `#proton-pack-icon` foram alteradas de `20px` para `0px` no `style.css`. A propriedade `right` do `#proton-pack-progress-bar` também foi alterada de `10px` para `0px` para manter o alinhamento.
