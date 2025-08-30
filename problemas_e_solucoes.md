@@ -63,3 +63,13 @@ A causa raiz de todo o conflito de câmera era uma chamada de função incorreta
 
 1.  **Correção da Chamada da Função:** A chamada incorreta `this.el.sceneEl.exitAR()` foi substituída pela função correta da A-Frame, `this.el.sceneEl.exitVR()`, que é usada para encerrar tanto sessões de VR quanto de AR.
 2.  **Manutenção do Atraso:** O `setTimeout` de 200ms foi mantido por precaução, garantindo que o navegador tenha tempo de liberar a câmera após a chamada correta de `exitVR()` e antes de o scanner de QR ser iniciado. Isso cria uma solução robusta para o gerenciamento do controle da câmera.
+
+## 30/08/2025 - Correção de Reinicialização de Estado do Jogo
+
+### Problema
+Após usar o scanner de QR e retornar à tela de seleção para re-entrar no modo AR, a tela ficava preta. O console mostrava o erro `Map container is already initialized`, indicando que o estado do jogo não estava sendo totalmente resetado.
+
+### Solução
+O erro era causado pela tentativa de reinicializar a biblioteca de mapa (Leaflet.js) em um elemento `<div>` que já continha uma instância de mapa ativa da sessão anterior. A solução foi tornar a função de inicialização do mapa (`initMap`) idempotente.
+
+1.  **Limpeza do Mapa Anterior:** A função `initMap` foi modificada para, antes de qualquer outra ação, verificar se uma instância do mapa (`this.map`) já existe. Se existir, o método `this.map.remove()` é chamado para destruir a instância antiga e limpar o container, garantindo que a nova inicialização ocorra em um estado limpo.

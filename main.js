@@ -271,6 +271,12 @@ AFRAME.registerComponent('game-manager', {
     },
 
     initMap: function () {
+        // Garante que o mapa anterior seja removido antes de inicializar um novo.
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+        }
+
         this.ECTO1_POSITION = { lat: this.selectedLocation.lat + 0.0005, lon: this.selectedLocation.lon - 0.0005 };
         this.map = L.map(this.minimapElement).setView([this.selectedLocation.lat, this.selectedLocation.lon], 18);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
