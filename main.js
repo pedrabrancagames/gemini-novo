@@ -486,6 +486,8 @@ AFRAME.registerComponent('game-manager', {
             entityToPlace.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
             entityToPlace.setAttribute('visible', 'true');
             entityToPlace.setAttribute('scale', '0.5 0.5 0.5');
+            // Emite o evento para iniciar as animações declaradas no HTML.
+            entityToPlace.emit('start-animation');
             this.placedObjects[this.objectToPlace] = true;
             this.reticle.setAttribute('visible', 'false');
         }

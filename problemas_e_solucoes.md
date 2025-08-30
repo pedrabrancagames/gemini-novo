@@ -73,3 +73,15 @@ Após usar o scanner de QR e retornar à tela de seleção para re-entrar no mod
 O erro era causado pela tentativa de reinicializar a biblioteca de mapa (Leaflet.js) em um elemento `<div>` que já continha uma instância de mapa ativa da sessão anterior. A solução foi tornar a função de inicialização do mapa (`initMap`) idempotente.
 
 1.  **Limpeza do Mapa Anterior:** A função `initMap` foi modificada para, antes de qualquer outra ação, verificar se uma instância do mapa (`this.map`) já existe. Se existir, o método `this.map.remove()` é chamado para destruir a instância antiga e limpar o container, garantindo que a nova inicialização ocorra em um estado limpo.
+
+## 30/08/2025 - Correção da Animação do Fantasma
+
+### Problema
+Os fantasmas apareciam em cena, mas permaneciam estáticos, sem a animação de movimento que havia sido implementada.
+
+### Solução
+A causa era uma abordagem de animação declarativa (`<a-animation>`) que não estava sendo ativada de forma confiável. A solução foi mudar para um sistema de animação mais explícito e robusto.
+
+1.  **Refatoração para Componente `animation`:** As tags `<a-animation>` foram substituídas pela sintaxe de componente `animation` do A-Frame, que é mais moderna.
+2.  **Início por Evento:** As animações foram configuradas para não iniciarem automaticamente, mas sim ao receberem um evento customizado: `start-animation`.
+3.  **Emissão do Evento:** A função `placeObject` no `main.js` foi modificada para, logo após tornar o fantasma visível, emitir o evento `start-animation` para a entidade do fantasma. Isso garante que a animação seja ativada no momento exato em que o fantasma é posicionado no mundo.

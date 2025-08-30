@@ -40,21 +40,17 @@
             geometry="primitive: ring; radius-inner: 0.04; radius-outer: 0.06;"
             material="color: #92F428; shader: flat;"></a-entity>
         
-        <!-- Fantasmas - agora com entidades separadas e com animação -->
-        <a-entity id="ghost-comum" visible="false">
-            <!-- Animação de Rotação (círculo) -->
-            <a-animation attribute="rotation" dur="12000" fill="forwards" to="0 360 0" repeat="indefinite" easing="linear"></a-animation>
-            <!-- O modelo 3D fica como filho, com um offset para girar em círculo e com a animação de subida/descida -->
-            <a-entity gltf-model="#ghost-model" position="0.6 0 0">
-                <a-animation attribute="position" dur="2500" direction="alternate" to="0.6 0.4 0" repeat="indefinite" easing="ease-in-out"></a-animation>
+        <!-- Fantasmas com animação via componente, aguardando evento para iniciar -->
+        <a-entity id="ghost-comum" visible="false" 
+            animation__rotation="property: rotation; to: 0 360 0; dur: 12000; loop: true; easing: linear; startEvents: start-animation">
+            <a-entity gltf-model="#ghost-model" position="0.6 0 0"
+                animation__bob="property: position; to: 0.6 0.4 0; dur: 2500; dir: alternate; loop: true; easing: easeInOutQuad; startEvents: start-animation">
             </a-entity>
         </a-entity>
-        <a-entity id="ghost-forte" visible="false">
-            <!-- Animação de Rotação (círculo) - um pouco mais rápido -->
-            <a-animation attribute="rotation" dur="10000" fill="forwards" to="0 -360 0" repeat="indefinite" easing="linear"></a-animation>
-            <!-- O modelo 3D fica como filho, com um offset para girar em círculo e com a animação de subida/descida -->
-            <a-entity gltf-model="#geleia-model" position="0.8 0 0">
-                <a-animation attribute="position" dur="2000" direction="alternate" to="0.8 0.5 0" repeat="indefinite" easing="ease-in-out"></a-animation>
+        <a-entity id="ghost-forte" visible="false"
+            animation__rotation="property: rotation; to: 0 -360 0; dur: 10000; loop: true; easing: linear; startEvents: start-animation">
+            <a-entity gltf-model="#geleia-model" position="0.8 0 0"
+                animation__bob="property: position; to: 0.8 0.5 0; dur: 2000; dir: alternate; loop: true; easing: easeInOutQuad; startEvents: start-animation">
             </a-entity>
         </a-entity>
         
