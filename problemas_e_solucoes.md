@@ -52,3 +52,14 @@ O problema era causado pelo uso da função `alert()`, que pausa toda a execuç�
 2.  **Alteração do HTML (`index.html`):** Adicionada a estrutura para a janela de notificação.
 3.  **Estilização (`style.css`):** Adicionadas regras de CSS para formatar a janela, garantindo que ela se sobreponha à UI do jogo sem bloquear a renderização.
 4.  **Atualização do Script (`main.js`):** A lógica foi refatorada para substituir todas as chamadas de `alert()` pela nova função `showNotification()`, que exibe a mensagem na janela customizada sem pausar o jogo. Isso garante que a câmera continue funcionando após a exibição das mensagens.
+
+## 30/08/2025 - Correção de Conflito de Câmera entre AR e Scanner de QR
+
+### Problema
+Ao tentar abrir o scanner de QR Code para depositar fantasmas, o scanner falhava e a câmera do modo AR quebrava (tela branca). O scanner só funcionava numa segunda tentativa, após a câmera AR já ter parado de funcionar. Isso indicou um conflito pelo controle do hardware da câmera.
+
+### Solução
+Foi implementado um gerenciamento explícito do controle da câmera para evitar que o modo AR (WebXR) e a biblioteca de scanner (`Html5Qrcode`) tentassem usar a câmera simultaneamente.
+
+1.  **Liberar Câmera Antes de Escanear:** A função `startQrScanner` foi modificada para primeiro sair do modo AR (`exitAR()`) e aguardar a liberação da câmera antes de tentar iniciar o scanner de QR Code.
+2.  **Retornar ao Fluxo Padrão:** A função `stopQrScanner` foi ajustada para, após fechar o scanner, levar o usuário de volta à tela de seleção de local. Isso força o usuário a re-entrar no modo AR através do botão "Iniciar Caça", garantindo que a câmera seja re-inicializada de forma limpa e sem conflitos.

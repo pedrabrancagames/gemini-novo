@@ -223,18 +223,41 @@ AFRAME.registerComponent('game-manager', {
         }
     },
 
-    startQrScanner: function () {
+    startQrScanner: async function () {
         this.inventoryModal.classList.add('hidden');
+
+        // Primeiro, saia do modo AR para liberar a câmera.
+        if (this.el.sceneEl.is('ar-mode')) {
+            try {
+                await this.el.sceneEl.exitAR();
+            } catch (e) {
+                console.error("Falha ao sair do modo AR.", e);
+            }
+        }
+
+        // Agora que a câmera está livre, inicie o scanner.
+        this.gameUi.classList.add('hidden');
         this.qrScannerScreen.classList.remove('hidden');
         this.html5QrCode = new Html5Qrcode("qr-reader");
-        this.html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, this.onScanSuccess, () => {}).catch(err => alert("Erro ao iniciar scanner de QR Code."));
+        this.html5QrCode.start(
+            { facingMode: "environment" }, 
+            { fps: 10, qrbox: 250 }, 
+            this.onScanSuccess, 
+            () => {}
+        ).catch(err => {
+            this.showNotification("Erro ao iniciar scanner de QR Code. Verifique as permissões da câmera no navegador.");
+            this.stopQrScanner(); // Garante que a UI volte ao estado correto
+        });
     },
 
     stopQrScanner: function () {
         if (this.html5QrCode && this.html5QrCode.isScanning) {
-            this.html5QrCode.stop().catch(err => console.warn("Falha ao parar o scanner de QR."));
+            this.html5QrCode.stop().catch(err => console.warn("Falha ao parar o scanner de QR.", err));
         }
         this.qrScannerScreen.classList.add('hidden');
+        // Retorna à tela de seleção de local para permitir re-entrar no modo AR de forma limpa.
+        this.locationScreen.classList.remove('hidden');
+        this.gameUi.classList.add('hidden');
     },
 
     initGame: function () {
