@@ -172,10 +172,10 @@ body {
 
 #proton-pack-progress-bar {
     position: fixed;
-    bottom: 115px; /* Acima do ícone */
-    right: 20px;
-    width: 90px;
-    height: 10px;
+    bottom: 20px;
+    right: 120px; /* Ajustado para a lateral direita */
+    width: 10px; /* Vertical */
+    height: 90px; /* Altura do ícone */
     background-color: rgba(0, 0, 0, 0.5);
     border: 1px solid #92F428;
     border-radius: 5px;
@@ -184,10 +184,10 @@ body {
     z-index: 16; /* Acima do ícone */
 }
 #proton-pack-progress-fill {
-    width: 0%;
-    height: 100%;
+    width: 100%; /* Preenche a largura */
+    height: 0%; /* Começa vazio na vertical */
     background-color: #92F428;
-    transition: width 0.1s linear;
+    transition: height 0.1s linear; /* Transição na altura */
 }
 
 #capture-button {

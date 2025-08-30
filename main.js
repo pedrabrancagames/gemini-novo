@@ -97,7 +97,8 @@ AFRAME.registerComponent('game-manager', {
         this.ghostEntity = document.getElementById('ghost');
         this.ecto1Entity = document.getElementById('ecto-1');
         this.protonBeamSound = document.getElementById('proton-beam-sound');
-        this.captureSuccessSound = document.getElementById('capture-success-sound');
+        this.ghostCaptureSound = document.getElementById('ghost-capture-sound');
+        this.inventoryFullSound = document.getElementById('inventory-full-sound');
         this.protonPackIcon = document.getElementById('proton-pack-icon');
         this.protonPackProgressBar = document.getElementById('proton-pack-progress-bar');
         this.protonPackProgressFill = document.getElementById('proton-pack-progress-fill');
@@ -325,14 +326,14 @@ AFRAME.registerComponent('game-manager', {
         if (this.isCapturing || !this.placedObjects.ghost || this.inventory.length >= this.INVENTORY_LIMIT) return;
         this.isCapturing = true;
         this.protonBeamSound.play();
+        this.protonPackProgressBar.style.display = 'block';
         let startTime = Date.now();
 
         const duration = this.ghostData.captureDuration;
-        this.protonPackProgressBar.style.display = 'block';
         this.progressInterval = setInterval(() => {
             const elapsedTime = Date.now() - startTime;
             const progress = Math.min(elapsedTime / duration, 1);
-            this.protonPackProgressFill.style.width = `${progress * 100}%`;
+            this.protonPackProgressFill.style.height = `${progress * 100}%`;
         }, 100);
 
         this.captureTimer = setTimeout(() => {
@@ -348,12 +349,12 @@ AFRAME.registerComponent('game-manager', {
         clearTimeout(this.captureTimer);
         clearInterval(this.progressInterval);
         this.protonPackProgressBar.style.display = 'none';
-        this.protonPackProgressFill.style.width = '0%';
+        this.protonPackProgressFill.style.height = '0%';
     },
 
     ghostCaptured: function () {
         this.cancelCapture();
-        this.captureSuccessSound.play();
+        this.ghostCaptureSound.play(); // Som de captura bem-sucedida
         this.ghostEntity.setAttribute('visible', false);
         this.placedObjects.ghost = false;
         this.objectToPlace = null;
@@ -362,6 +363,10 @@ AFRAME.registerComponent('game-manager', {
         this.userStats.points += this.ghostData.points;
         this.userStats.captures += 1;
         this.updateInventoryUI();
+
+        if (this.inventory.length === this.INVENTORY_LIMIT) {
+            this.inventoryFullSound.play(); // Som de inventário cheio
+        }
 
         if (this.userStats.captures >= this.ECTO1_UNLOCK_COUNT && !this.userStats.ecto1Unlocked) {
             this.userStats.ecto1Unlocked = true;
