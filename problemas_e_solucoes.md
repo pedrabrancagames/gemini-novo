@@ -100,3 +100,14 @@ Foi implementada a funcionalidade de pausar o movimento do fantasma quando o bot
 2.  **Pausar Animações:** Na função `startCapture`, as animações de rotação e flutuação do fantasma ativo são pausadas.
 3.  **Retomar Animações:** Na função `cancelCapture`, as animações são retomadas.
 4.  **Limpeza de Referências:** Na função `ghostCaptured`, as referências armazenadas são limpas após a captura do fantasma.
+
+## 30/08/2025 - Nova Funcionalidade: Efeito Visual de Feixe de Prótons
+
+### Problema
+O jogo não possuía um feedback visual para o feixe de prótons durante a captura, o que diminuía a imersão.
+
+### Solução
+Foi adicionado um efeito visual de feixe de prótons que aparece quando o botão do Proton Pack é pressionado e desaparece quando é solto.
+
+1.  **Entidade do Feixe:** Adicionada uma nova entidade `<a-entity>` para o feixe como filho da `a-camera` no `index.html`, utilizando o componente `line` para desenhar uma linha 3D.
+2.  **Controle de Visibilidade:** No `main.js`, a visibilidade dessa entidade é controlada: ela é tornada visível na função `startCapture` e invisível na função `cancelCapture`.

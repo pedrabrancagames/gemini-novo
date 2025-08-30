@@ -111,6 +111,7 @@ AFRAME.registerComponent('game-manager', {
         this.protonPackIcon = document.getElementById('proton-pack-icon');
         this.protonPackProgressBar = document.getElementById('proton-pack-progress-bar');
         this.protonPackProgressFill = document.getElementById('proton-pack-progress-fill');
+        this.protonBeamEntity = document.getElementById('proton-beam-entity'); // Nova referência para o feixe de prótons
         this.notificationModal = document.getElementById('notification-modal');
         this.notificationMessage = document.getElementById('notification-message');
         this.notificationCloseButton = document.getElementById('notification-close-button');
@@ -395,6 +396,7 @@ AFRAME.registerComponent('game-manager', {
 
         this.isCapturing = true;
         this.protonBeamSound.play();
+        this.protonBeamEntity.setAttribute('visible', true); // Mostra o feixe de prótons
         this.protonPackProgressBar.style.display = 'block';
         let startTime = Date.now();
 
@@ -415,6 +417,7 @@ AFRAME.registerComponent('game-manager', {
         this.isCapturing = false;
         this.protonBeamSound.pause();
         this.protonBeamSound.currentTime = 0;
+        this.protonBeamEntity.setAttribute('visible', false); // Esconde o feixe de prótons
         clearTimeout(this.captureTimer);
         clearInterval(this.progressInterval);
         this.protonPackProgressBar.style.display = 'none';
