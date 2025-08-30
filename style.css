@@ -141,7 +141,7 @@ body {
 }
 
 #inventory-icon {
-    width: 90px; /* Aumentado */
+    width: 115px; /* Aumentado */
 }
 
 #inventory-badge {
@@ -165,7 +165,7 @@ body {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 110px; /* Aumentado */
+    width: 140px; /* Aumentado */
     z-index: 15;
     pointer-events: auto; /* Agora é clicável */
 }

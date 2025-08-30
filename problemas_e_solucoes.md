@@ -154,3 +154,13 @@ O feixe de prótons estava ligeiramente mais à esquerda do que o desejado, nece
 Foi realizado um ajuste na coordenada X do ponto de início do feixe para movê-lo visualmente 5px para a direita.
 
 1.  **Ajuste da Coordenada X:** A coordenada X do ponto `start` do componente `line` foi alterada de `0.1` para `0.15`. Este ajuste visa mover a origem do feixe ligeiramente para a direita em relação à câmera.
+
+## 30/08/2025 - Melhoria: Aumentar Tamanho de Ícones da UI
+
+### Problema
+Os ícones do Proton Pack e da Ghost Trap estavam pequenos, dificultando a interação e a visibilidade.
+
+### Solução
+O tamanho dos ícones foi aumentado para melhorar a experiência do usuário.
+
+1.  **Ajuste de Largura:** A largura (`width`) do `#proton-pack-icon` foi alterada de `110px` para `140px` e a do `#inventory-icon` de `90px` para `115px` no `style.css`.
