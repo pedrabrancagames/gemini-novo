@@ -194,3 +194,14 @@ A imagem do Proton Pack e sua barra de progresso não estavam encostando nas bor
 A posição dos elementos foi ajustada para que encostem nos limites da tela.
 
 1.  **Ajuste de Posição:** As propriedades `bottom` e `right` do `#proton-pack-icon` foram alteradas de `20px` para `0px` no `style.css`. A propriedade `right` do `#proton-pack-progress-bar` também foi alterada de `10px` para `0px` para manter o alinhamento.
+
+## 30/08/2025 - Melhoria: Ajuste Fino da Origem do Feixe de Prótons (Volta para Linha, Ajuste Fino X)
+
+### Problema
+O feixe de prótons não estava saindo da posição exata desejada, necessitando de ajustes finos na sua origem.
+
+### Solução
+Foram realizados ajustes finos na coordenada X do ponto de início do feixe para movê-lo visualmente para a posição desejada.
+
+1.  **Ajuste da Coordenada X (0.4 para 0.1):** A coordenada X do ponto `start` do componente `line` foi alterada de `0.4` para `0.1` para movê-lo mais para a esquerda.
+2.  **Ajuste da Coordenada X (0.1 para 0.15):** A coordenada X do ponto `start` do componente `line` foi alterada de `0.1` para `0.15` para um pequeno ajuste para a direita.
