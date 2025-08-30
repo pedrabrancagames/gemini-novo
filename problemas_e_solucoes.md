@@ -144,3 +144,13 @@ O feixe de prótons ainda não estava saindo da posição exata desejada, necess
 Foi realizado um ajuste na coordenada X do ponto de início do feixe para movê-lo visualmente 50px para a esquerda.
 
 1.  **Ajuste da Coordenada X:** A coordenada X do ponto `start` do componente `line` foi alterada de `0.4` para `0.1`. Este ajuste visa mover a origem do feixe mais para a esquerda em relação à câmera, aproximando-a da ponta desejada da imagem do Proton Pack.
+
+## 30/08/2025 - Melhoria: Ajuste Fino da Origem do Feixe de Prótons (5px para Direita)
+
+### Problema
+O feixe de prótons estava ligeiramente mais à esquerda do que o desejado, necessitando de um pequeno ajuste para a direita.
+
+### Solução
+Foi realizado um ajuste na coordenada X do ponto de início do feixe para movê-lo visualmente 5px para a direita.
+
+1.  **Ajuste da Coordenada X:** A coordenada X do ponto `start` do componente `line` foi alterada de `0.1` para `0.15`. Este ajuste visa mover a origem do feixe ligeiramente para a direita em relação à câmera.
