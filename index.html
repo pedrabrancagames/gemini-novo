@@ -36,9 +36,13 @@
         <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
         <a-light type="directional" color="#FFF" intensity="0.8" position="-1 2 1"></a-light>
         <a-camera fov="80">
-            <!-- Entidade do Feixe de Prótons (filho da câmera) -->
+            <!-- Proton Beam Entity (child of camera) - agora um cilindro -->
             <a-entity id="proton-beam-entity" visible="false"
-                line="start: 0.5 -0.5 -0.5; end: 0 0 -10; color: #00FFFF; opacity: 0.8;"></a-entity>
+                geometry="primitive: cylinder; radius: 0.03; height: 10;"
+                material="color: #00FFFF; opacity: 0.8;"
+                position="-0.25 -0.25 -5.25" <!-- Posição do meio do cilindro, ajustada para a ponta esquerda -->
+                rotation="90 0 0"> <!-- Rotaciona para apontar para frente -->
+            </a-entity>
         </a-camera>
         <a-entity id="reticle" visible="false"
             geometry="primitive: ring; radius-inner: 0.04; radius-outer: 0.06;"

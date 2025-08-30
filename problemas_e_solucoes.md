@@ -111,3 +111,14 @@ Foi adicionado um efeito visual de feixe de prótons que aparece quando o botão
 
 1.  **Entidade do Feixe:** Adicionada uma nova entidade `<a-entity>` para o feixe como filho da `a-camera` no `index.html`, utilizando o componente `line` para desenhar uma linha 3D.
 2.  **Controle de Visibilidade:** No `main.js`, a visibilidade dessa entidade é controlada: ela é tornada visível na função `startCapture` e invisível na função `cancelCapture`.
+
+## 30/08/2025 - Melhoria: Ajuste de Origem e Espessura do Feixe de Prótons
+
+### Problema
+O feixe de prótons estava saindo da ponta direita da imagem do Proton Pack e era muito fino, não correspondendo à expectativa visual.
+
+### Solução
+Foi ajustada a origem e a espessura do feixe para melhorar a imersão e a fidelidade visual.
+
+1.  **Mudança para Cilindro:** O componente `line` foi substituído por um `a-cylinder` no `index.html` para permitir o controle da espessura.
+2.  **Ajuste de Posição e Rotação:** A `position` e `rotation` do cilindro foram ajustadas para que o feixe pareça sair da ponta esquerda da imagem do Proton Pack e aponte corretamente para o centro da tela.
