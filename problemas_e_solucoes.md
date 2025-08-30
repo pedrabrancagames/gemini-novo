@@ -134,3 +134,13 @@ Para garantir a precisão da origem e do alvo do feixe, o componente `line` foi 
 1.  **Reintrodução do Componente `line`:** A entidade `proton-beam-entity` no `index.html` foi alterada de volta para usar o componente `line`.
 2.  **Ajuste Preciso dos Pontos:** Os pontos `start` e `end` da linha foram ajustados para `start: 0.4 -0.4 -0.5; end: 0 0 -10;`. Isso visa posicionar visualmente a origem do feixe na ponta superior esquerda da imagem do Proton Pack e direcioná-lo para o centro da tela.
 3.  **Compensação da Espessura:** Embora o componente `line` não suporte espessura direta, a cor foi mantida vibrante e a opacidade alta para compensar visualmente.
+
+## 30/08/2025 - Melhoria: Ajuste Fino da Origem do Feixe de Prótons (50px para Esquerda)
+
+### Problema
+O feixe de prótons ainda não estava saindo da posição exata desejada, necessitando de um ajuste mais fino para a esquerda.
+
+### Solução
+Foi realizado um ajuste na coordenada X do ponto de início do feixe para movê-lo visualmente 50px para a esquerda.
+
+1.  **Ajuste da Coordenada X:** A coordenada X do ponto `start` do componente `line` foi alterada de `0.4` para `0.1`. Este ajuste visa mover a origem do feixe mais para a esquerda em relação à câmera, aproximando-a da ponta desejada da imagem do Proton Pack.
