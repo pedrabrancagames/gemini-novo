@@ -63,3 +63,11 @@ Foi implementado um gerenciamento explícito do controle da câmera para evitar 
 
 1.  **Liberar Câmera Antes de Escanear:** A função `startQrScanner` foi modificada para primeiro sair do modo AR (`exitAR()`) e aguardar a liberação da câmera antes de tentar iniciar o scanner de QR Code.
 2.  **Retornar ao Fluxo Padrão:** A função `stopQrScanner` foi ajustada para, após fechar o scanner, levar o usuário de volta à tela de seleção de local. Isso força o usuário a re-entrar no modo AR através do botão "Iniciar Caça", garantindo que a câmera seja re-inicializada de forma limpa e sem conflitos.
+
+## 30/08/2025 - Correção de Race Condition na Liberação da Câmera
+
+### Problema
+A solução anterior para o conflito de câmera gerou uma "race condition". O scanner de QR era iniciado imediatamente após a conclusão do comando `exitAR()`, mas o navegador ainda não havia liberado completamente o recurso da câmera, resultando em um erro de permissão.
+
+### Solução
+Foi adicionado um pequeno atraso (`setTimeout` de 200ms) na função `startQrScanner`. Esse atraso ocorre após a saída do modo AR e antes da inicialização do scanner. A pausa, embora imperceptível para o usuário, dá ao navegador tempo suficiente para liberar totalmente a câmera, resolvendo a condição de corrida e permitindo que o scanner seja iniciado com sucesso na primeira tentativa.
