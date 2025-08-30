@@ -164,3 +164,13 @@ Os ícones do Proton Pack e da Ghost Trap estavam pequenos, dificultando a inter
 O tamanho dos ícones foi aumentado para melhorar a experiência do usuário.
 
 1.  **Ajuste de Largura:** A largura (`width`) do `#proton-pack-icon` foi alterada de `110px` para `140px` e a do `#inventory-icon` de `90px` para `115px` no `style.css`.
+
+## 30/08/2025 - Melhoria: Diminuir Espessura do Feixe de Prótons
+
+### Problema
+O feixe de prótons estava muito grosso, não correspondendo à expectativa visual.
+
+### Solução
+A espessura do feixe foi ajustada para um valor mais adequado.
+
+1.  **Ajuste de Raio:** O raio (`radius`) do cilindro que representa o feixe foi alterado de `0.03` para `0.015` no `index.html`.
