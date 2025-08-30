@@ -174,3 +174,13 @@ O feixe de prótons estava muito grosso, não correspondendo à expectativa visu
 A espessura do feixe foi ajustada para um valor mais adequado.
 
 1.  **Ajuste de Raio:** O raio (`radius`) do cilindro que representa o feixe foi alterado de `0.03` para `0.015` no `index.html`.
+
+## 30/08/2025 - Melhoria: Ajustar Espessura do Feixe de Prótons (0.015 para 0.012)
+
+### Problema
+O feixe de prótons ainda estava mais grosso do que o desejado, necessitando de um ajuste fino.
+
+### Solução
+A espessura do feixe foi ajustada para um valor ainda menor.
+
+1.  **Ajuste de Raio:** O raio (`radius`) do cilindro que representa o feixe foi alterado de `0.015` para `0.012` no `index.html`.
