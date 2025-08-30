@@ -23,7 +23,8 @@ AFRAME.registerComponent('game-manager', {
 
         this.locations = {
             "Praça Central": { lat: -27.630913, lon: -48.679793 },
-            "Parque da Cidade": { lat: -27.639797, lon: -48.667749 }
+            "Parque da Cidade": { lat: -27.639797, lon: -48.667749 },
+            "Casa do Vô": { lat: -27.51563471648395, lon: -48.64996016391755 }
         };
         this.ECTO1_POSITION = {};
 
