@@ -97,6 +97,10 @@ AFRAME.registerComponent('game-manager', {
         this.reticle = document.getElementById('reticle');
         this.ghostComumEntity = document.getElementById('ghost-comum');
         this.ghostForteEntity = document.getElementById('ghost-forte');
+        this.ghostComumRotator = document.getElementById('ghost-comum-rotator');
+        this.ghostComumBobber = document.getElementById('ghost-comum-bobber');
+        this.ghostForteRotator = document.getElementById('ghost-forte-rotator');
+        this.ghostForteBobber = document.getElementById('ghost-forte-bobber');
         this.activeGhostEntity = null; // Novo: para rastrear o fantasma ativo
         this.ecto1Entity = document.getElementById('ecto-1');
         this.protonBeamSound = document.getElementById('proton-beam-sound');
@@ -486,8 +490,28 @@ AFRAME.registerComponent('game-manager', {
             entityToPlace.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
             entityToPlace.setAttribute('visible', 'true');
             entityToPlace.setAttribute('scale', '0.5 0.5 0.5');
-            // Emite o evento para iniciar as animações declaradas no HTML.
-            entityToPlace.emit('start-animation');
+
+            // Determina qual tipo de fantasma está sendo colocado e inicia suas animações.
+            let rotatorEntity, bobberEntity;
+            if (this.activeGhostEntity === this.ghostComumEntity) {
+                rotatorEntity = this.ghostComumRotator;
+                bobberEntity = this.ghostComumBobber;
+            } else if (this.activeGhostEntity === this.ghostForteEntity) {
+                rotatorEntity = this.ghostForteRotator;
+                bobberEntity = this.ghostForteBobber;
+            }
+
+            if (rotatorEntity && bobberEntity) {
+                // Garante que as animações sejam reiniciadas e reproduzidas.
+                rotatorEntity.components.animation__rotation.pause();
+                rotatorEntity.components.animation__rotation.currentTime = 0;
+                rotatorEntity.components.animation__rotation.play();
+
+                bobberEntity.components.animation__bob.pause();
+                bobberEntity.components.animation__bob.currentTime = 0;
+                bobberEntity.components.animation__bob.play();
+            }
+
             this.placedObjects[this.objectToPlace] = true;
             this.reticle.setAttribute('visible', 'false');
         }
