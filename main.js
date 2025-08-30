@@ -50,6 +50,8 @@ AFRAME.registerComponent('game-manager', {
         this.ghostData = {};
         this.userStats = { points: 0, captures: 0, ecto1Unlocked: false };
         this.html5QrCode = null;
+        this.currentRotatorEntity = null; // Novo: para controlar a animação de rotação do fantasma ativo
+        this.currentBobberEntity = null; // Novo: para controlar a animação de flutuação do fantasma ativo
     },
 
     bindMethods: function () {
@@ -384,6 +386,13 @@ AFRAME.registerComponent('game-manager', {
 
     startCapture: function () {
         if (this.isCapturing || !this.placedObjects.ghost || this.inventory.length >= this.INVENTORY_LIMIT) return;
+
+        // Pausa as animações do fantasma
+        if (this.currentRotatorEntity && this.currentBobberEntity) {
+            this.currentRotatorEntity.components.animation__rotation.pause();
+            this.currentBobberEntity.components.animation__bob.pause();
+        }
+
         this.isCapturing = true;
         this.protonBeamSound.play();
         this.protonPackProgressBar.style.display = 'block';
@@ -410,6 +419,12 @@ AFRAME.registerComponent('game-manager', {
         clearInterval(this.progressInterval);
         this.protonPackProgressBar.style.display = 'none';
         this.protonPackProgressFill.style.height = '0%';
+
+        // Retoma as animações do fantasma
+        if (this.currentRotatorEntity && this.currentBobberEntity) {
+            this.currentRotatorEntity.components.animation__rotation.play();
+            this.currentBobberEntity.components.animation__bob.play();
+        }
     },
 
     ghostCaptured: function () {
@@ -420,6 +435,10 @@ AFRAME.registerComponent('game-manager', {
         }
         this.placedObjects.ghost = false;
         this.objectToPlace = null;
+
+        // Limpa as referências das entidades de animação do fantasma capturado
+        this.currentRotatorEntity = null;
+        this.currentBobberEntity = null;
 
         this.inventory.push({ id: Date.now(), type: this.ghostData.type, points: this.ghostData.points });
         this.userStats.points += this.ghostData.points;
@@ -511,6 +530,9 @@ AFRAME.registerComponent('game-manager', {
                 bobberEntity.components.animation__bob.currentTime = 0;
                 bobberEntity.components.animation__bob.play();
             }
+
+            this.currentRotatorEntity = rotatorEntity; // Armazena a referência
+            this.currentBobberEntity = bobberEntity;   // Armazena a referência
 
             this.placedObjects[this.objectToPlace] = true;
             this.reticle.setAttribute('visible', 'false');

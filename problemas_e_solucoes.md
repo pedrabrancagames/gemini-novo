@@ -87,3 +87,16 @@ A solução foi re-arquitetar a entidade do fantasma no `index.html` usando uma 
 3.  **Entidade do Modelo:** Uma entidade neta, filha da orbitadora. Ela contém o `gltf-model` e é deslocada do centro (ex: `position="1 0.3 0"`) para definir o raio da órbita. É nesta entidade que a animação de `position` (flutuação para cima e para baixo) é aplicada.
 
 Essa estrutura garante que a rotação da entidade orbitadora mova a entidade do modelo em um círculo perfeito, enquanto a animação de posição da própria entidade do modelo a faz flutuar independentemente, resultando no efeito desejado.
+
+## 30/08/2025 - Nova Funcionalidade: Pausar/Retomar Movimento do Fantasma
+
+### Problema
+O jogador desejava ter controle sobre o movimento do fantasma durante a captura, para facilitar o processo.
+
+### Solução
+Foi implementada a funcionalidade de pausar o movimento do fantasma quando o botão do Proton Pack é pressionado e retomá-lo caso a captura seja cancelada.
+
+1.  **Armazenamento de Referências:** Adicionadas as propriedades `this.currentRotatorEntity` e `this.currentBobberEntity` para armazenar as referências das entidades de animação do fantasma ativo.
+2.  **Pausar Animações:** Na função `startCapture`, as animações de rotação e flutuação do fantasma ativo são pausadas.
+3.  **Retomar Animações:** Na função `cancelCapture`, as animações são retomadas.
+4.  **Limpeza de Referências:** Na função `ghostCaptured`, as referências armazenadas são limpas após a captura do fantasma.
